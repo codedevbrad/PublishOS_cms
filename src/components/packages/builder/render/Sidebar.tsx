@@ -1,0 +1,268 @@
+'use client'
+import React, { useState } from 'react'
+import { Plus, Trash2, Edit2, ChevronDown, ChevronUp } from 'lucide-react'
+import {
+  BLOCK_TYPES,
+  GLOBAL_BLOCK_TYPES,
+  BlockRenderer,
+} from '../blocks/blocks'
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from '@/src/components/ui/popover'
+import { EditorPopoverShell } from './EditorPopoverShell'
+
+interface ContentBlock {
+  id: string
+  type: 'hero' | 'about' | 'image' | 'faq' | 'contact' | 'team' | 'quote' | 'gallery'
+  content: any
+  order: number
+  variant?: string
+}
+
+interface GlobalBlock {
+  id: string
+  type: 'header' | 'nav'
+  content: any
+  isActive: boolean
+}
+
+interface Page {
+  id: string
+  name: string
+  slug: string
+  blocks: ContentBlock[]
+  isActive: boolean
+}
+
+interface SidebarProps {
+  globalBlocks: GlobalBlock[]
+  pages: Page[]
+  activePageId: string
+  newPageName: string
+  draggedBlockType: string | null
+  openGlobalEditorId: string | null
+  onAddGlobalBlock: (blockType: string) => void
+  onUpdateGlobalBlock: (blockId: string, content: any) => void
+  onDeleteGlobalBlock: (blockId: string) => void
+  onSetActivePageId: (pageId: string) => void
+  onDeletePage: (pageId: string) => void
+  onSetNewPageName: (name: string) => void
+  onCreateNewPage: () => void
+  onSetOpenGlobalEditorId: (id: string | null) => void
+  onDragStart: (e: React.DragEvent, type: string, blockId?: string) => void
+  onDragEnd: () => void
+  onAddBlockFromSidebar: (blockType: string) => void
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({
+  globalBlocks,
+  pages,
+  activePageId,
+  newPageName,
+  draggedBlockType,
+  openGlobalEditorId,
+  onAddGlobalBlock,
+  onUpdateGlobalBlock,
+  onDeleteGlobalBlock,
+  onSetActivePageId,
+  onDeletePage,
+  onSetNewPageName,
+  onCreateNewPage,
+  onSetOpenGlobalEditorId,
+  onDragStart,
+  onDragEnd,
+  onAddBlockFromSidebar,
+}) => {
+  const [isPagesExpanded, setIsPagesExpanded] = useState(true)
+  const [isContentBlocksExpanded, setIsContentBlocksExpanded] = useState(true)
+
+  return (
+    <div className="w-80 bg-white border-r border-gray-200 flex flex-col min-h-0 overflow-y-auto">
+      {/* Global Blocks Section */}
+      <div className="p-4 border-b border-gray-200 flex-shrink-0">
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">Global Elements</h3>
+        <div className="space-y-2">
+          {GLOBAL_BLOCK_TYPES.map((blockType) => {
+            const existingBlock = globalBlocks.find((b) => b.type === blockType.type && b.isActive)
+            return (
+              <div key={blockType.type} className="flex items-center justify-between">
+                <div
+                  onClick={() => onAddGlobalBlock(blockType.type)}
+                  className={`flex items-center space-x-3 p-2 rounded-lg border cursor-pointer hover:shadow-md transition-all flex-1 ${
+                    existingBlock ? 'bg-blue-50 border-blue-200' : 'bg-white'
+                  }`}
+                >
+                  <div className={`p-1 rounded ${blockType.color}`}>
+                    <blockType.icon className="w-3 h-3 text-white" />
+                  </div>
+                  <span className="text-sm font-medium text-gray-700">{blockType.name}</span>
+                </div>
+
+                {existingBlock && (
+                  <div className="flex ml-2 space-x-1">
+                    {/* EDIT (Popover) */}
+                    <Popover
+                      open={openGlobalEditorId === existingBlock.id}
+                      onOpenChange={(open) => onSetOpenGlobalEditorId(open ? existingBlock.id : null)}
+                    >
+                      <PopoverTrigger asChild>
+                        <button
+                          className={`p-1 text-xs hover:text-blue-600 ${
+                            openGlobalEditorId === existingBlock.id ? 'text-blue-600' : 'text-gray-400'
+                          }`}
+                          aria-label="Edit global block"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        align="start"
+                        side="right"
+                        sideOffset={8}
+                        className="p-0 border-none shadow-none bg-transparent"
+                      >
+                        <EditorPopoverShell
+                          title={`Edit ${blockType.name}`}
+                          onClose={() => onSetOpenGlobalEditorId(null)}
+                          onSave={() => onSetOpenGlobalEditorId(null)}
+                        >
+                          <BlockRenderer
+                            block={existingBlock}
+                            isEditing={true}
+                            onUpdate={(content) => onUpdateGlobalBlock(existingBlock.id, content)}
+                          />
+                        </EditorPopoverShell>
+                      </PopoverContent>
+                    </Popover>
+
+                    {/* DELETE */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onDeleteGlobalBlock(existingBlock.id)
+                      }}
+                      className="p-1 text-xs text-gray-400 hover:text-red-600"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Pages Section */}
+      <div className="border-b border-gray-200 flex-shrink-0">
+        <button
+          onClick={() => setIsPagesExpanded(!isPagesExpanded)}
+          className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+        >
+          <h3 className="text-sm font-semibold text-gray-700">Pages</h3>
+          {isPagesExpanded ? (
+            <ChevronUp className="w-4 h-4 text-gray-500" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-gray-500" />
+          )}
+        </button>
+        {isPagesExpanded && (
+          <div className="px-4 pb-4">
+            <div className="space-y-2">
+              {pages.map((page) => {
+                const navBlock = globalBlocks.find((b) => b.type === 'nav' && b.isActive)
+                const isInNav = navBlock?.content?.autoSync || navBlock?.content?.items?.some((item: any) => item.pageId === page.id)
+
+                return (
+                  <div key={page.id} className="flex items-center justify-between">
+                    <div className="flex items-center flex-1">
+                      <button
+                        onClick={() => onSetActivePageId(page.id)}
+                        className={`flex-1 text-left px-3 py-2 rounded text-sm ${
+                          page.id === activePageId ? 'bg-blue-100 text-blue-700 font-medium' : 'text-gray-600 hover:bg-gray-100'
+                        }`}
+                      >
+                        {page.name}
+                      </button>
+                      {isInNav && <span className="ml-2 px-2 py-1 text-xs bg-green-100 text-green-700 rounded">in nav</span>}
+                    </div>
+                    {pages.length > 1 && (
+                      <button onClick={() => onDeletePage(page.id)} className="p-1 text-red-400 hover:text-red-600">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+            <div className="mt-3 flex space-x-2">
+              <input
+                type="text"
+                value={newPageName}
+                onChange={(e) => onSetNewPageName(e.target.value)}
+                placeholder="Page name"
+                className="flex-1 px-2 py-1 text-sm border rounded"
+                onKeyDown={(e) => e.key === 'Enter' && onCreateNewPage()}
+              />
+              <button onClick={onCreateNewPage} className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+
+            {globalBlocks.find((b) => b.type === 'nav' && b.isActive)?.content?.autoSync && (
+              <div className="mt-3 p-2 bg-blue-50 rounded text-xs text-blue-700">
+                <div className="flex items-center space-x-1">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span>Navigation auto-synced with pages</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Block Types */}
+      <div className="flex-shrink-0">
+        <button
+          onClick={() => setIsContentBlocksExpanded(!isContentBlocksExpanded)}
+          className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors border-b border-gray-200"
+        >
+          <h3 className="text-sm font-semibold text-gray-700">Content Blocks</h3>
+          {isContentBlocksExpanded ? (
+            <ChevronUp className="w-4 h-4 text-gray-500" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-gray-500" />
+          )}
+        </button>
+        {isContentBlocksExpanded && (
+          <div className="px-4 pb-4">
+            <div className="space-y-2">
+              {BLOCK_TYPES.map((blockType) => (
+                <div
+                  key={blockType.type}
+                  draggable
+                  onDragStart={(e) => onDragStart(e, blockType.type)}
+                  onDragEnd={onDragEnd}
+                  onClick={() => onAddBlockFromSidebar(blockType.type)}
+                  className={`flex items-center space-x-3 p-3 rounded-lg border cursor-grab active:cursor-grabbing hover:shadow-md transition-all bg-white ${
+                    draggedBlockType === blockType.type ? 'opacity-50' : ''
+                  }`}
+                >
+                  <div className={`p-2 rounded ${blockType.color}`}>
+                    <blockType.icon className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-sm font-medium text-gray-700">{blockType.name}</span>
+                  {blockType.hasVariants && (
+                    <span className="ml-auto text-xs text-gray-400">Multiple styles</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

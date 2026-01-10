@@ -1,0 +1,73 @@
+model Organisation {
+    id        String   @id @default(cuid())
+    name      String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    members   User[]  @relation("OrganisationMembers")
+    domains   Domain[]
+    sites     Website[]
+}
+
+
+enum ServiceConfigType {
+    POSTHOG
+    RESEND
+    CLOUDFLARE
+}
+
+
+model ServiceConfig {
+    id        String   @id @default(cuid())
+    name      String
+    config    Json
+    type      ServiceConfigType
+
+    // Polymorphic relation: can belong to either Domain or Website
+    domain    Domain?  @relation(fields: [domainId], references: [id])
+    domainId  String?
+
+    website   Website? @relation(fields: [websiteId], references: [id])
+    websiteId String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Ensure at least one relation is set (enforced at application level)
+    @@index([domainId])
+    @@index([websiteId])
+}
+
+model Domain {
+    id        String   @id @default(cuid())
+    name      String
+    description String?
+    websites Website[]
+    serviceConfigs ServiceConfig[]
+
+    organisation Organisation @relation(fields: [organisationId], references: [id])
+    organisationId String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+
+model Website {
+    id        String   @id @default(cuid())
+    name      String
+    domainUrl String
+
+    isActive  Boolean @default(true)
+    siteData  Json
+
+    organisation Organisation @relation(fields: [organisationId], references: [id])
+    organisationId String
+
+    domain Domain @relation(fields: [domainId], references: [id])
+    domainId String
+
+    serviceConfigs ServiceConfig[]
+    
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
