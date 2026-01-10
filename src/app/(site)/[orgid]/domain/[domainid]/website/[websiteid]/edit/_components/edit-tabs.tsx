@@ -14,6 +14,7 @@ export function EditTabs({ basePath }: EditTabsProps) {
   const tabs = [
     { label: "Design", href: `${basePath}/design` },
     { label: "Data", href: `${basePath}/data` },
+    { label: "Chat system", href: `${basePath}/chat` },
     { label: "Analytics", href: `${basePath}/analytics` },
   ]
 

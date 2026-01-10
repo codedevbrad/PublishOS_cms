@@ -9,12 +9,17 @@ export function Header() {
   const { data: user, isLoading } = useUser();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-5">
       <div className="container flex h-14 items-center">
-        <div className="mr-4 flex">
-          <Link href="/" className="mr-6 flex items-center space-x-2">
-            <span className="font-bold">CMS</span>
-          </Link>
+        <div className=" flex">
+          <Link href="/" className="flex">
+            <h3 className="font-bold">
+              PublishOS
+            </h3>
+          </Link>  
+          <p className="text-sm text-muted-foreground ml-4 bg-muted rounded-md px-2 py-1 ">
+                build → publish → track.
+          </p>
         </div>
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <nav className="flex items-center space-x-6 text-sm font-medium">

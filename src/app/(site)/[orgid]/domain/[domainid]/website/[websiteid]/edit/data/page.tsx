@@ -34,8 +34,12 @@ export default async function DataPage({ params }: DataPageProps) {
     <div className="h-full p-6">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-2xl font-bold mb-6">Data</h2>
+        <p className="text-muted-foreground mb-6">Manage your website data and content.</p>
         <div className="bg-muted rounded-lg p-8 text-center">
           <p className="text-muted-foreground">Data management coming soon...</p>
+        </div>
+        <div>
+           <h2 className="text-lg font-bold mb-4"> Contact </h2>
         </div>
       </div>
     </div>
