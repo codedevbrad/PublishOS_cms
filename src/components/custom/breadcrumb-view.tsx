@@ -24,9 +24,9 @@ interface BreadcrumbData {
  * and builds breadcrumbs based on the page hierarchy.
  * 
  * Supports routes:
- * - /[orgid] - Organisation page
- * - /[orgid]/domain/[domainid] - Domain page
- * - /[orgid]/domain/[domainid]/website/[websiteid]/edit - Website edit page
+ * - /org/[orgid] - Organisation page
+ * - /org/[orgid]/domain/[domainid] - Domain page
+ * - /org/[orgid]/domain/[domainid]/website/[websiteid]/edit - Website edit page
  */
 export function BreadcrumbView({ orgid }: BreadcrumbViewProps) {
   const pathname = usePathname();
@@ -128,19 +128,19 @@ export function BreadcrumbView({ orgid }: BreadcrumbViewProps) {
 
   // Add Organisation breadcrumb
   if (breadcrumbData.organisationName) {
-    const isOrganisationPage = pathname === `/${orgid}`;
+    const isOrganisationPage = pathname === `/org/${orgid}`;
     breadcrumbItems.push({
       label: breadcrumbData.organisationName,
-      href: isOrganisationPage ? undefined : `/${orgid}`,
+      href: isOrganisationPage ? undefined : `/org/${orgid}`,
     });
   }
 
   // Add Domain breadcrumb if we're on a domain or website page
   if (breadcrumbData.domainName && breadcrumbData.domainId) {
-    const isDomainPage = pathname === `/${orgid}/domain/${breadcrumbData.domainId}`;
+    const isDomainPage = pathname === `/org/${orgid}/domain/${breadcrumbData.domainId}`;
     breadcrumbItems.push({
       label: breadcrumbData.domainName,
-      href: isDomainPage ? undefined : `/${orgid}/domain/${breadcrumbData.domainId}`,
+      href: isDomainPage ? undefined : `/org/${orgid}/domain/${breadcrumbData.domainId}`,
     });
   }
 
@@ -149,7 +149,7 @@ export function BreadcrumbView({ orgid }: BreadcrumbViewProps) {
     const isWebsiteEditPage = pathname.includes("/edit");
     breadcrumbItems.push({
       label: breadcrumbData.websiteName,
-      href: isWebsiteEditPage ? undefined : `/${orgid}/domain/${breadcrumbData.domainId}/website/${breadcrumbData.websiteId}`,
+      href: isWebsiteEditPage ? undefined : `/org/${orgid}/domain/${breadcrumbData.domainId}/website/${breadcrumbData.websiteId}`,
     });
 
     // Add Edit breadcrumb if we're on the edit page

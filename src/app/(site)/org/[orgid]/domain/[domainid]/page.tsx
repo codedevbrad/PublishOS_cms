@@ -33,7 +33,7 @@ export default async function DomainPage({ params }: DomainPageProps) {
     <div className="container mx-auto py-8 px-4 max-w-6xl">
       <div className="space-y-8">
         <div className="flex items-center gap-4">
-          <Link href={`/${orgid}`}>
+          <Link href={`/org/${orgid}`}>
             <Button variant="ghost" size="sm">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Organisation

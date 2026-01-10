@@ -8,5 +8,5 @@ export default async function WebsiteEditPage({ params }: WebsiteEditPageProps) 
   const { orgid, domainid, websiteid } = await params
   
   // Redirect to design page by default
-  redirect(`/${orgid}/domain/${domainid}/website/${websiteid}/edit/design`)
+  redirect(`/org/${orgid}/domain/${domainid}/website/${websiteid}/edit/design`)
 }

@@ -143,7 +143,7 @@ export function WebsiteList({ domainId, organisationId }: WebsiteListProps) {
                   </p>
                 </div>
                 <div className="flex gap-2 ml-4">
-                  <Link href={`/${organisationId}/domain/${domainId}/website/${website.id}/edit`}>
+                  <Link href={`/org/${organisationId}/domain/${domainId}/website/${website.id}/edit`}>
                     <Button variant="outline" size="sm">
                       <ExternalLink className="w-4 h-4 mr-1" />
                       Edit

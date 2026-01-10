@@ -8,7 +8,7 @@ interface WebsiteEditLayoutProps {
 
 export default async function WebsiteEditLayout({ children, params }: WebsiteEditLayoutProps) {
   const { orgid, domainid, websiteid } = await params
-  const basePath = `/${orgid}/domain/${domainid}/website/${websiteid}/edit`
+  const basePath = `/org/${orgid}/domain/${domainid}/website/${websiteid}/edit`
 
   return (
     <div className="flex flex-col h-full min-h-0">
