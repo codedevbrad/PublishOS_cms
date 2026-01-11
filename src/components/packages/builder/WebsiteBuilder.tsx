@@ -11,7 +11,7 @@ import {
 } from './blocks/blocks'
 
 import ViewportSandbox, { type ViewportConfig as ViewportSandboxConfig } from './viewportsandbox'
-import { Sidebar } from './render/Sidebar'
+import { Sidebar } from './render/sidebar/Sidebar'
 import { PageRenderer } from './render/PageRenderer'
 import { BlockChooser } from './render/BlockVariant'
 
@@ -39,9 +39,22 @@ interface Page {
   isActive: boolean
 }
 
+interface ThemeColors {
+  primary: string
+  secondary: string
+  accent: string
+  background: string
+  foreground: string
+  muted: string
+  mutedForeground: string
+  border: string
+  [key: string]: string // Allow custom color keys
+}
+
 interface SiteData {
   pages: Page[]
   globalBlocks: GlobalBlock[]
+  themeColors?: ThemeColors
 }
 
 // Viewport types...
@@ -69,6 +82,19 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
 
   const [globalBlocks, setGlobalBlocks] = useState<GlobalBlock[]>(
     initialSiteData?.globalBlocks || []
+  )
+
+  const [themeColors, setThemeColors] = useState<ThemeColors>(
+    initialSiteData?.themeColors || {
+      primary: '#3b82f6',
+      secondary: '#64748b',
+      accent: '#8b5cf6',
+      background: '#ffffff',
+      foreground: '#0f172a',
+      muted: '#f1f5f9',
+      mutedForeground: '#64748b',
+      border: '#e2e8f0',
+    }
   )
 
   const [activePageId, setActivePageId] = useState<string>(pages[0]?.id || '1')
@@ -105,6 +131,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
     const siteData: SiteData = {
       pages,
       globalBlocks,
+      themeColors,
     }
 
     startSaving(async () => {
@@ -119,7 +146,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
         setTimeout(() => setSaveStatus('idle'), 3000)
       }
     })
-  }, [websiteCreationId, pages, globalBlocks])
+  }, [websiteCreationId, pages, globalBlocks, themeColors])
 
   const handleDragStart = (e: React.DragEvent, type: string, blockId?: string) => {
     e.dataTransfer.effectAllowed = 'move'
@@ -379,7 +406,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
   }
 
   return (
-<div className="flex h-full w-full bg-gray-50">
+<div className="flex h-full w-full">
     {/* Sidebar – fixed width, full height */}
     <aside className="shrink-0 h-full flex">
       <Sidebar
@@ -389,6 +416,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
         newPageName={newPageName}
         draggedBlockType={draggedBlockType}
         openGlobalEditorId={openGlobalEditorId}
+        themeColors={themeColors}
         onAddGlobalBlock={addGlobalBlock}
         onUpdateGlobalBlock={updateGlobalBlock}
         onDeleteGlobalBlock={deleteGlobalBlock}
@@ -400,6 +428,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         onAddBlockFromSidebar={addBlockFromSidebar}
+        onUpdateThemeColors={setThemeColors}
       />
     </aside>
 
@@ -420,7 +449,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
         height={customHeight}
         onViewportChange={handleViewportChange}
         onSizeChange={handleSizeChange}
-        title="Page Preview"
+        title={activePage?.name || 'Page Preview'}
         toolbarRight={
           <div className="flex items-center space-x-2">
             <button

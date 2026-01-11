@@ -7,7 +7,7 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from '@/src/components/ui/popover'
-import { EditorPopoverShell } from './EditorPopoverShell'
+import { EditorPopoverShell } from './sidebar/EditorPopoverShell'
 
 interface ContentBlock {
   id: string

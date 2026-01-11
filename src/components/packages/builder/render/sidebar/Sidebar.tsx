@@ -1,17 +1,18 @@
 'use client'
 import React, { useState } from 'react'
-import { Plus, Trash2, Edit2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Plus, Trash2, Edit2, ChevronDown, ChevronUp, Palette } from 'lucide-react'
 import {
   BLOCK_TYPES,
   GLOBAL_BLOCK_TYPES,
   BlockRenderer,
-} from '../blocks/blocks'
+} from '../../blocks/blocks'
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
 } from '@/src/components/ui/popover'
 import { EditorPopoverShell } from './EditorPopoverShell'
+import { ThemeEditor } from './ThemeEditor'
 
 interface ContentBlock {
   id: string
@@ -26,6 +27,18 @@ interface GlobalBlock {
   type: 'header' | 'nav'
   content: any
   isActive: boolean
+}
+
+interface ThemeColors {
+  primary: string
+  secondary: string
+  accent: string
+  background: string
+  foreground: string
+  muted: string
+  mutedForeground: string
+  border: string
+  [key: string]: string
 }
 
 interface Page {
@@ -43,6 +56,7 @@ interface SidebarProps {
   newPageName: string
   draggedBlockType: string | null
   openGlobalEditorId: string | null
+  themeColors: ThemeColors
   onAddGlobalBlock: (blockType: string) => void
   onUpdateGlobalBlock: (blockId: string, content: any) => void
   onDeleteGlobalBlock: (blockId: string) => void
@@ -54,6 +68,7 @@ interface SidebarProps {
   onDragStart: (e: React.DragEvent, type: string, blockId?: string) => void
   onDragEnd: () => void
   onAddBlockFromSidebar: (blockType: string) => void
+  onUpdateThemeColors: (colors: ThemeColors) => void
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -63,6 +78,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   newPageName,
   draggedBlockType,
   openGlobalEditorId,
+  themeColors,
   onAddGlobalBlock,
   onUpdateGlobalBlock,
   onDeleteGlobalBlock,
@@ -74,12 +90,75 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onDragStart,
   onDragEnd,
   onAddBlockFromSidebar,
+  onUpdateThemeColors,
 }) => {
   const [isPagesExpanded, setIsPagesExpanded] = useState(true)
   const [isContentBlocksExpanded, setIsContentBlocksExpanded] = useState(true)
+  const [isThemeEditorOpen, setIsThemeEditorOpen] = useState(false)
 
   return (
     <div className="w-80 bg-white border-r border-gray-200 flex flex-col min-h-0 overflow-y-auto">
+      {/* Theme Colors Section */}
+      <div className="p-4 border-b border-gray-200 flex-shrink-0">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-gray-700">Theme Colors</h3>
+          <Popover open={isThemeEditorOpen} onOpenChange={setIsThemeEditorOpen}>
+            <PopoverTrigger asChild>
+              <button
+                className={`p-1.5 rounded hover:bg-gray-100 transition-colors ${
+                  isThemeEditorOpen ? 'bg-blue-50 text-blue-600' : 'text-gray-400 hover:text-gray-600'
+                }`}
+                aria-label="Edit theme colors"
+              >
+                <Edit2 className="w-4 h-4" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              align="start"
+              side="right"
+              sideOffset={8}
+              className="p-0 border-none shadow-none bg-transparent"
+            >
+              <EditorPopoverShell
+                title="Edit Theme Colors"
+                onClose={() => setIsThemeEditorOpen(false)}
+                onSave={() => setIsThemeEditorOpen(false)}
+              >
+                <ThemeEditor themeColors={themeColors} onUpdate={onUpdateThemeColors} />
+              </EditorPopoverShell>
+            </PopoverContent>
+          </Popover>
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center space-x-2 p-2 rounded-lg border bg-white">
+            <div className="p-1.5 rounded bg-gradient-to-br from-blue-500 to-purple-500">
+              <Palette className="w-3 h-3 text-white" />
+            </div>
+            <div className="flex-1">
+              <span className="text-sm font-medium text-gray-700">Color Palette</span>
+              <div className="flex items-center space-x-1 mt-1">
+                <div
+                  className="w-4 h-4 rounded border border-gray-300"
+                  style={{ backgroundColor: themeColors.primary }}
+                  title="Primary"
+                />
+                <div
+                  className="w-4 h-4 rounded border border-gray-300"
+                  style={{ backgroundColor: themeColors.secondary }}
+                  title="Secondary"
+                />
+                <div
+                  className="w-4 h-4 rounded border border-gray-300"
+                  style={{ backgroundColor: themeColors.accent }}
+                  title="Accent"
+                />
+                <span className="text-xs text-gray-500 ml-1">+{Object.keys(themeColors).length - 3} more</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Global Blocks Section */}
       <div className="p-4 border-b border-gray-200 flex-shrink-0">
         <h3 className="text-sm font-semibold text-gray-700 mb-3">Global Elements</h3>

@@ -1,5 +1,6 @@
 'use client'
-import React from 'react'
+import React, { useState, useRef, useCallback } from 'react'
+import { Maximize2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 type ViewportKey = 'desktop' | 'tablet' | 'mobile' | string
@@ -66,6 +67,56 @@ export default function ViewportSandbox({
   children,
 }: ViewportSandboxProps) {
   const currentCfg = configs[viewport]
+  const [isResizing, setIsResizing] = useState(false)
+  const resizeRef = useRef<{ startX: number; startY: number; startWidth: number; startHeight: number } | null>(null)
+  const viewportFrameRef = useRef<HTMLDivElement>(null)
+
+  const handleResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsResizing(true)
+    if (viewportFrameRef.current) {
+      const rect = viewportFrameRef.current.getBoundingClientRect()
+      resizeRef.current = {
+        startX: e.clientX,
+        startY: e.clientY,
+        startWidth: width,
+        startHeight: height,
+      }
+    }
+  }, [width, height])
+
+  const handleResizeMove = useCallback((e: MouseEvent) => {
+    if (!isResizing || !resizeRef.current) return
+
+    const deltaX = e.clientX - resizeRef.current.startX
+    const deltaY = e.clientY - resizeRef.current.startY
+
+    const newWidth = Math.max(320, Math.min(1920, resizeRef.current.startWidth + deltaX))
+    const newHeight = Math.max(200, Math.min(2000, resizeRef.current.startHeight + deltaY))
+
+    onSizeChange({ width: newWidth, height: newHeight })
+  }, [isResizing, onSizeChange])
+
+  const handleResizeEnd = useCallback(() => {
+    setIsResizing(false)
+    resizeRef.current = null
+  }, [])
+
+  React.useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleResizeMove)
+      document.addEventListener('mouseup', handleResizeEnd)
+      document.body.style.cursor = 'nwse-resize'
+      document.body.style.userSelect = 'none'
+      return () => {
+        document.removeEventListener('mousemove', handleResizeMove)
+        document.removeEventListener('mouseup', handleResizeEnd)
+        document.body.style.cursor = ''
+        document.body.style.userSelect = ''
+      }
+    }
+  }, [isResizing, handleResizeMove, handleResizeEnd])
 
   return (
     <div className={`flex flex-col h-full min-h-0 ${className ?? ''}`}>
@@ -123,13 +174,26 @@ export default function ViewportSandbox({
         <div className="flex justify-center w-full min-h-full">
           {/* 🔑 Rounded frame controls overflow */}
           <div
-            className="bg-white shadow-lg rounded-lg overflow-hidden flex flex-col ring-1 ring-black/10"
+            ref={viewportFrameRef}
+            className="bg-white shadow-lg rounded-lg overflow-hidden flex flex-col ring-1 ring-black/10 relative"
             style={{
               width: '100%',
               maxWidth: `${width}px`,
               minHeight: `${height}px`,
             }}
           >
+            {/* Resize handle - top right */}
+            <button
+              onMouseDown={handleResizeStart}
+              className={`absolute top-0 right-0 z-20 p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-bl-lg transition-colors cursor-nwse-resize ${
+                isResizing ? 'bg-blue-700' : ''
+              }`}
+              aria-label="Resize viewport"
+              title="Drag to resize viewport"
+            >
+              <Maximize2 className="w-4 h-4 rotate-45" />
+            </button>
+
             {/* Faux browser bar */}
             <div className="shrink-0 bg-gray-800 text-white px-4 py-2 flex items-center justify-between sticky top-0 z-10">
               <div className="flex items-center space-x-2">
