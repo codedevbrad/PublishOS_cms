@@ -37,6 +37,7 @@ model ServiceConfig {
     @@index([websiteId])
 }
 
+
 model Domain {
     id        String   @id @default(cuid())
     name      String
@@ -51,6 +52,24 @@ model Domain {
     updatedAt DateTime @updatedAt
 }
 
+model WebsiteCreation {
+    id        String   @id @default(cuid())
+    name      String
+    siteData  Json
+
+    website Website @relation(fields: [websiteId], references: [id])
+    websiteId String
+
+    isActive Boolean @default(false)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Ensure only one active WebsiteCreation per Website
+    // This requires a partial unique index via raw SQL migration
+    @@index([websiteId, isActive])
+}
+
 
 model Website {
     id        String   @id @default(cuid())
@@ -58,7 +77,9 @@ model Website {
     domainUrl String
 
     isActive  Boolean @default(true)
-    siteData  Json
+
+    
+    sites WebsiteCreation[]
 
     organisation Organisation @relation(fields: [organisationId], references: [id])
     organisationId String

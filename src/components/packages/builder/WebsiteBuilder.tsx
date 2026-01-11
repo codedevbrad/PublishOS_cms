@@ -49,10 +49,11 @@ type ViewportType = 'desktop' | 'tablet' | 'mobile'
 
 interface WebsiteBuilderProps {
   websiteId: string
+  websiteCreationId: string
   initialSiteData?: SiteData
 }
 
-export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, initialSiteData }) => {
+export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websiteCreationId, initialSiteData }) => {
   // Initialize state from initialSiteData or defaults
   const [pages, setPages] = useState<Page[]>(
     initialSiteData?.pages || [
@@ -108,7 +109,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, initi
 
     startSaving(async () => {
       setSaveStatus('saving')
-      const result = await updateWebsiteSiteData(websiteId, siteData)
+      const result = await updateWebsiteSiteData(websiteCreationId, siteData)
       if (result.success) {
         setSaveStatus('success')
         setTimeout(() => setSaveStatus('idle'), 2000)
@@ -118,7 +119,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, initi
         setTimeout(() => setSaveStatus('idle'), 3000)
       }
     })
-  }, [websiteId, pages, globalBlocks])
+  }, [websiteCreationId, pages, globalBlocks])
 
   const handleDragStart = (e: React.DragEvent, type: string, blockId?: string) => {
     e.dataTransfer.effectAllowed = 'move'
