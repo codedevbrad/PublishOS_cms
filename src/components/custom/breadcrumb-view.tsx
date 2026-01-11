@@ -6,6 +6,7 @@ import { BreadcrumbNav, type BreadcrumbItem } from "@/src/components/ui/breadcru
 import { getOrganisation } from "@/src/domains/organisation/db";
 import { getDomain } from "@/src/domains/domain/db";
 import { getWebsite } from "@/src/domains/website/db";
+import { GoBackButton } from "./goBack";
 
 interface BreadcrumbViewProps {
   orgid: string;
@@ -54,7 +55,7 @@ export function BreadcrumbView({ orgid }: BreadcrumbViewProps) {
         }
 
         // Fetch data based on what we need using server actions
-        const fetchPromises: Promise<any>[] = [];
+        const fetchPromises: Promise<void>[] = [];
         
         // Always fetch organisation
         fetchPromises.push(
@@ -165,8 +166,9 @@ export function BreadcrumbView({ orgid }: BreadcrumbViewProps) {
   }
 
   return (
-  <div className="">
-    <BreadcrumbNav items={breadcrumbItems} />
+    <div className="flex flex-row gap-4 items-center">
+      <GoBackButton variant="default" text="Back" />
+      <BreadcrumbNav items={breadcrumbItems} />
     </div>
   );
 }

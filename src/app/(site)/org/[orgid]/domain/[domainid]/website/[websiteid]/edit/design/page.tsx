@@ -79,18 +79,27 @@ export default async function WebsiteEditPage({ params, searchParams }: WebsiteE
   }
 
   return (
-    <div className="flex flex-col h-screen">
-      <DraftSelectorWrapper 
-        websiteId={websiteid}
-        currentCreationId={activeCreation.id}
-        creations={creationsWithName}
-      />
-      <div className="flex-1 overflow-hidden">
-        <WebsiteBuilder 
+    <div className="flex flex-col h-full min-h-0">
+      {/* Draft selector – fixed height */}
+      <div className="shrink-0">
+        <DraftSelectorWrapper
+          websiteId={websiteid}
+          currentCreationId={activeCreation.id}
+          creations={creationsWithName}
+        />
+      </div>
+
+      {/* Builder – fills remaining height */}
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <WebsiteBuilder
           key={activeCreation.id}
           websiteId={websiteid}
           websiteCreationId={activeCreation.id}
-          initialSiteData={activeCreation.siteData as unknown as Parameters<typeof WebsiteBuilder>[0]['initialSiteData']} 
+          initialSiteData={
+            activeCreation.siteData as Parameters<
+              typeof WebsiteBuilder
+            >[0]["initialSiteData"]
+          }
         />
       </div>
     </div>

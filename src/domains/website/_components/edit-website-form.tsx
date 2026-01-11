@@ -1,8 +1,15 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useMemo } from "react";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/src/components/ui/select";
 import { updateWebsite } from "../db";
 
 interface EditWebsiteFormProps {
@@ -20,8 +27,37 @@ export function EditWebsiteForm({
   onSuccess,
   onCancel,
 }: EditWebsiteFormProps) {
+  // Parse initial domain URL to extract domain name and TLD
+  const { domainName: initialDomainName, tld: initialTld } = useMemo(() => {
+    let domain = initialDomainUrl;
+    // Remove www. prefix if present
+    if (domain.startsWith("www.")) {
+      domain = domain.slice(4);
+    }
+    
+    // Extract TLD (.co.uk or .com)
+    if (domain.endsWith(".co.uk")) {
+      return {
+        domainName: domain.slice(0, -6), // Remove .co.uk
+        tld: ".co.uk",
+      };
+    } else if (domain.endsWith(".com")) {
+      return {
+        domainName: domain.slice(0, -4), // Remove .com
+        tld: ".com",
+      };
+    }
+    
+    // Default fallback
+    return {
+      domainName: domain,
+      tld: ".co.uk",
+    };
+  }, [initialDomainUrl]);
+
   const [name, setName] = useState(initialName);
-  const [domainUrl, setDomainUrl] = useState(initialDomainUrl);
+  const [domainName, setDomainName] = useState(initialDomainName);
+  const [tld, setTld] = useState(initialTld);
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
 
@@ -34,16 +70,23 @@ export function EditWebsiteForm({
       return;
     }
 
-    if (!domainUrl.trim()) {
-      setError("Domain URL is required");
+    if (!domainName.trim()) {
+      setError("Domain name is required");
       return;
     }
+
+    if (!tld) {
+      setError("Please select a domain extension");
+      return;
+    }
+
+    const fullDomainUrl = `www.${domainName.trim()}${tld}`;
 
     startTransition(async () => {
       const result = await updateWebsite(
         websiteId,
         name.trim(),
-        domainUrl.trim()
+        fullDomainUrl
       );
 
       if (!result.success) {
@@ -70,17 +113,35 @@ export function EditWebsiteForm({
         />
       </div>
       <div className="space-y-2">
-        <label htmlFor="domainUrl" className="text-sm font-medium">
-          Domain URL *
-        </label>
-        <Input
-          id="domainUrl"
-          type="text"
-          value={domainUrl}
-          onChange={(e) => setDomainUrl(e.target.value)}
-          required
-          disabled={isPending}
-        />
+        <label className="text-sm font-medium">Domain URL *</label>
+        <div className="flex items-center gap-0">
+          <Input
+            type="text"
+            value="www"
+            disabled
+            className="w-20 bg-muted"
+            readOnly
+          />
+          <span className="text-muted-foreground">.</span>
+          <Input
+            type="text"
+            value={domainName}
+            onChange={(e) => setDomainName(e.target.value)}
+            required
+            disabled={isPending}
+            placeholder="example"
+            className="flex-1"
+          />
+          <Select value={tld} onValueChange={setTld} disabled={isPending}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value=".com">.com</SelectItem>
+              <SelectItem value=".co.uk">.co.uk</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       {error && (
         <div className="text-sm text-destructive bg-destructive/10 p-2 rounded">

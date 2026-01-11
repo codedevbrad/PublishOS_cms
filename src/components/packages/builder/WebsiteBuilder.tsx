@@ -381,7 +381,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
   return (
 <div className="flex h-full w-full bg-gray-50">
     {/* Sidebar – fixed width, full height */}
-    <aside className="shrink-0 h-full">
+    <aside className="shrink-0 h-full flex">
       <Sidebar
         globalBlocks={globalBlocks}
         pages={pages}
