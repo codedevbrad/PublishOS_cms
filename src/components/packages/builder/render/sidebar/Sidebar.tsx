@@ -4,15 +4,19 @@ import { Plus, Trash2, Edit2, ChevronDown, ChevronUp, Palette } from 'lucide-rea
 import {
   BLOCK_TYPES,
   GLOBAL_BLOCK_TYPES,
-  BlockRenderer,
 } from '../../blocks/blocks'
 import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from '@/src/components/ui/popover'
-import { EditorPopoverShell } from './EditorPopoverShell'
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerFooter,
+  DrawerTrigger,
+  DrawerClose,
+} from '@/src/components/ui/drawer'
 import { ThemeEditor } from './ThemeEditor'
+import { GlobalEditorDrawer } from '../../_components/GlobalEditorDrawer'
+import { Save, X } from 'lucide-react'
 
 interface ContentBlock {
   id: string
@@ -100,10 +104,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <div className="w-80 bg-white border-r border-gray-200 flex flex-col min-h-0 overflow-y-auto">
       {/* Theme Colors Section */}
       <div className="p-4 border-b border-gray-200 flex-shrink-0">
+        
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-gray-700">Theme Colors</h3>
-          <Popover open={isThemeEditorOpen} onOpenChange={setIsThemeEditorOpen}>
-            <PopoverTrigger asChild>
+          <Drawer open={isThemeEditorOpen} onOpenChange={setIsThemeEditorOpen} direction="bottom">
+            <DrawerTrigger asChild>
               <button
                 className={`p-1.5 rounded hover:bg-gray-100 transition-colors ${
                   isThemeEditorOpen ? 'bg-blue-50 text-blue-600' : 'text-gray-400 hover:text-gray-600'
@@ -112,22 +117,38 @@ export const Sidebar: React.FC<SidebarProps> = ({
               >
                 <Edit2 className="w-4 h-4" />
               </button>
-            </PopoverTrigger>
-            <PopoverContent
-              align="start"
-              side="right"
-              sideOffset={8}
-              className="p-0 border-none shadow-none bg-transparent"
-            >
-              <EditorPopoverShell
-                title="Edit Theme Colors"
-                onClose={() => setIsThemeEditorOpen(false)}
-                onSave={() => setIsThemeEditorOpen(false)}
-              >
+            </DrawerTrigger>
+            <DrawerContent className="w-full h-[500px]">
+              <DrawerHeader className="border-b">
+                <DrawerTitle>Edit Theme Colors</DrawerTitle>
+              </DrawerHeader>
+              <div className="p-4 overflow-y-auto">
                 <ThemeEditor themeColors={themeColors} onUpdate={onUpdateThemeColors} />
-              </EditorPopoverShell>
-            </PopoverContent>
-          </Popover>
+              </div>
+              <DrawerFooter className="border-t">
+                <div className="flex items-center gap-2 justify-end">
+                  <DrawerClose asChild>
+                    <button
+                      onClick={() => setIsThemeEditorOpen(false)}
+                      className="inline-flex items-center gap-2 rounded-md bg-gray-100 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-200"
+                    >
+                      <X className="h-4 w-4" />
+                      Close
+                    </button>
+                  </DrawerClose>
+                  <DrawerClose asChild>
+                    <button
+                      onClick={() => setIsThemeEditorOpen(false)}
+                      className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700"
+                    >
+                      <Save className="h-4 w-4" />
+                      Save
+                    </button>
+                  </DrawerClose>
+                </div>
+              </DrawerFooter>
+            </DrawerContent>
+          </Drawer>
         </div>
         <div className="space-y-2">
           <div className="flex items-center space-x-2 p-2 rounded-lg border bg-white">
@@ -181,40 +202,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                 {existingBlock && (
                   <div className="flex ml-2 space-x-1">
-                    {/* EDIT (Popover) */}
-                    <Popover
-                      open={openGlobalEditorId === existingBlock.id}
+                    {/* EDIT (Drawer) */}
+                    <GlobalEditorDrawer
+                      block={existingBlock}
+                      title={`Edit ${blockType.name}`}
+                      isOpen={openGlobalEditorId === existingBlock.id}
                       onOpenChange={(open) => onSetOpenGlobalEditorId(open ? existingBlock.id : null)}
-                    >
-                      <PopoverTrigger asChild>
-                        <button
-                          className={`p-1 text-xs hover:text-blue-600 ${
-                            openGlobalEditorId === existingBlock.id ? 'text-blue-600' : 'text-gray-400'
-                          }`}
-                          aria-label="Edit global block"
-                        >
-                          <Edit2 className="w-3 h-3" />
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        align="start"
-                        side="right"
-                        sideOffset={8}
-                        className="p-0 border-none shadow-none bg-transparent"
-                      >
-                        <EditorPopoverShell
-                          title={`Edit ${blockType.name}`}
-                          onClose={() => onSetOpenGlobalEditorId(null)}
-                          onSave={() => onSetOpenGlobalEditorId(null)}
-                        >
-                          <BlockRenderer
-                            block={existingBlock}
-                            isEditing={true}
-                            onUpdate={(content) => onUpdateGlobalBlock(existingBlock.id, content)}
-                          />
-                        </EditorPopoverShell>
-                      </PopoverContent>
-                    </Popover>
+                      onUpdate={(content) => onUpdateGlobalBlock(existingBlock.id, content)}
+                      onClose={() => onSetOpenGlobalEditorId(null)}
+                      triggerClassName={`p-1 text-xs hover:text-blue-600 ${
+                        openGlobalEditorId === existingBlock.id ? 'text-blue-600' : 'text-gray-400'
+                      }`}
+                    />
 
                     {/* DELETE */}
                     <button

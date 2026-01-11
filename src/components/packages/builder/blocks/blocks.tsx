@@ -100,8 +100,7 @@ export const getDefaultBlockContent = (type: string, variant?: string, pages?: P
   switch (type) {
     case 'header':
       return {
-        logo: 'Your Logo',
-        logoImage: '',
+        title: 'Your Site Title',
         backgroundColor: '#ffffff',
         textColor: '#000000',
         height: 'h-16'
@@ -257,13 +256,8 @@ export const BlockRenderer: React.FC<{ block: ContentBlock | GlobalBlock; isEdit
           style={{ backgroundColor: content.backgroundColor, color: content.textColor }}
         >
           <div className="flex items-center space-x-3">
-            {content.logoImage ? (
-              <img src={content.logoImage} alt="Logo" className="h-8 w-auto" />
-            ) : (
-              <div className="text-xl font-bold">{content.logo}</div>
-            )}
+            <div className="text-xl font-bold">{content.title || 'Your Site Title'}</div>
           </div>
-          <div className="text-sm text-gray-500">Header Area</div>
         </div>
       );
     
@@ -409,22 +403,13 @@ const BlockEditor: React.FC<{ type: string; content: any; onUpdate: (content: an
       return (
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Logo Text</label>
+            <label className="block text-sm font-medium mb-1">Title</label>
             <input
               type="text"
-              value={content.logo}
-              onChange={(e) => handleInputChange('logo', e.target.value)}
+              value={content.title || ''}
+              onChange={(e) => handleInputChange('title', e.target.value)}
               className="w-full p-2 border rounded-md"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Logo Image URL</label>
-            <input
-              type="text"
-              value={content.logoImage}
-              onChange={(e) => handleInputChange('logoImage', e.target.value)}
-              className="w-full p-2 border rounded-md"
-              placeholder="https://example.com/logo.png"
+              placeholder="Your Site Title"
             />
           </div>
           <div>

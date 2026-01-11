@@ -1,8 +1,15 @@
 'use client'
 import React, { useState, useCallback, useEffect } from 'react'
-import { Eye, Save } from 'lucide-react'
+import { Eye, Save, Code } from 'lucide-react'
 import { updateWebsiteSiteData } from '@/src/domains/website/db'
 import { useTransition } from 'react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/src/components/ui/dialog'
 
 import {
   BLOCK_TYPES,
@@ -121,6 +128,9 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
   // Save state
   const [isSaving, startSaving] = useTransition()
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle')
+
+  // Data viewer state
+  const [isDataViewerOpen, setIsDataViewerOpen] = useState<boolean>(false)
 
   const activePage = pages.find((p) => p.id === activePageId)
   const activeHeader = globalBlocks.find((b) => b.type === 'header' && b.isActive)
@@ -405,6 +415,15 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
     setBlockChooserOpen(null)
   }
 
+  // Get current siteData for viewing
+  const getCurrentSiteData = useCallback((): SiteData => {
+    return {
+      pages,
+      globalBlocks,
+      themeColors,
+    }
+  }, [pages, globalBlocks, themeColors])
+
   return (
 <div className="flex h-full w-full">
     {/* Sidebar – fixed width, full height */}
@@ -465,6 +484,14 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
               <span className="text-sm">{isPreviewMode ? 'Preview' : 'Edit'}</span>
             </button>
             <button
+              onClick={() => setIsDataViewerOpen(true)}
+              className="flex items-center space-x-2 px-4 py-2 rounded transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200"
+              aria-label="View site data"
+            >
+              <Code className="w-4 h-4" />
+              <span className="text-sm">View Data</span>
+            </button>
+            <button
               onClick={handleSave}
               disabled={isSaving || saveStatus === 'saving'}
               className={`flex items-center space-x-2 px-4 py-2 rounded transition-colors ${
@@ -507,6 +534,23 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
         />
       </ViewportSandbox>
     </div>
+
+    {/* Data Viewer Dialog */}
+    <Dialog open={isDataViewerOpen} onOpenChange={setIsDataViewerOpen}>
+      <DialogContent className="!max-w-7xl sm:!max-w-7xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle>Site Data Viewer</DialogTitle>
+          <DialogDescription>
+            Current siteData for websiteCreation ID: {websiteCreationId}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex-1 overflow-auto mt-4">
+          <pre className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg text-sm overflow-auto border">
+            <code>{JSON.stringify(getCurrentSiteData(), null, 2)}</code>
+          </pre>
+        </div>
+      </DialogContent>
+    </Dialog>
   </div>
   )
 }

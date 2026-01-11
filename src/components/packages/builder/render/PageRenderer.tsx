@@ -1,13 +1,9 @@
 'use client'
-import React from 'react'
-import { Trash2, Edit2, GripVertical, Layout } from 'lucide-react'
+import React, { useState } from 'react'
+import { Trash2, GripVertical, Layout } from 'lucide-react'
 import { BlockRenderer } from '../blocks/blocks'
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from '@/src/components/ui/popover'
-import { EditorPopoverShell } from './sidebar/EditorPopoverShell'
+import { BlockEditorDrawer } from '../_components/BlockEditorDrawer'
+import { GlobalEditorDrawer } from '../_components/GlobalEditorDrawer'
 
 interface ContentBlock {
   id: string
@@ -75,6 +71,9 @@ export const PageRenderer: React.FC<PageRendererProps> = ({
   onDragLeave,
   onDrop,
 }) => {
+
+  const [ isEditingHeader, setIsEditingHeader ] = useState(false)
+
   if (!activePage) return null
 
   return (
@@ -83,41 +82,16 @@ export const PageRenderer: React.FC<PageRendererProps> = ({
       {activeHeader && (
         <div className="relative group">
           {!isPreviewMode && (
-            <div className="absolute top-2 right-2 z-10 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute top-2 left-2 z-10 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <div className="bg-white rounded shadow-lg border flex">
-                <Popover
-                  open={openGlobalEditorId === activeHeader.id}
-                  onOpenChange={(open) => onSetOpenGlobalEditorId(open ? activeHeader.id : null)}
-                >
-                  <PopoverTrigger asChild>
-                    <button
-                      className={`p-2 hover:text-blue-600 ${
-                        openGlobalEditorId === activeHeader.id ? 'text-blue-600' : 'text-gray-400'
-                      }`}
-                      aria-label="Edit header"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    align="start"
-                    side="left"
-                    sideOffset={8}
-                    className="p-0 border-none shadow-none bg-transparent"
-                  >
-                    <EditorPopoverShell
-                      title="Edit Header"
-                      onClose={() => onSetOpenGlobalEditorId(null)}
-                      onSave={() => onSetOpenGlobalEditorId(null)}
-                    >
-                      <BlockRenderer
-                        block={activeHeader}
-                        isEditing={true}
-                        onUpdate={(content) => onUpdateGlobalBlock(activeHeader.id, content)}
-                      />
-                    </EditorPopoverShell>
-                  </PopoverContent>
-                </Popover>
+                <GlobalEditorDrawer
+                  block={activeHeader}
+                  title="Edit Header"
+                  isOpen={isEditingHeader}
+                  onOpenChange={(open) => setIsEditingHeader(open)}
+                  onUpdate={(content) => onUpdateGlobalBlock(activeHeader.id, content)}
+                  onClose={() => setIsEditingHeader(false)}
+                />
 
                 <button onClick={() => onDeleteGlobalBlock(activeHeader.id)} className="p-2 text-gray-400 hover:text-red-600">
                   <Trash2 className="w-4 h-4" />
@@ -135,39 +109,14 @@ export const PageRenderer: React.FC<PageRendererProps> = ({
           {!isPreviewMode && (
             <div className="absolute top-2 right-2 z-10 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <div className="bg-white rounded shadow-lg border flex">
-                <Popover
-                  open={openGlobalEditorId === activeNav.id}
+                <GlobalEditorDrawer
+                  block={activeNav}
+                  title="Edit Navigation"
+                  isOpen={openGlobalEditorId === activeNav.id}
                   onOpenChange={(open) => onSetOpenGlobalEditorId(open ? activeNav.id : null)}
-                >
-                  <PopoverTrigger asChild>
-                    <button
-                      className={`p-2 hover:text-blue-600 ${
-                        openGlobalEditorId === activeNav.id ? 'text-blue-600' : 'text-gray-400'
-                      }`}
-                      aria-label="Edit navigation"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    align="end"
-                    side="bottom"
-                    sideOffset={8}
-                    className="p-0 border-none shadow-none bg-transparent"
-                  >
-                    <EditorPopoverShell
-                      title="Edit Navigation"
-                      onClose={() => onSetOpenGlobalEditorId(null)}
-                      onSave={() => onSetOpenGlobalEditorId(null)}
-                    >
-                      <BlockRenderer
-                        block={activeNav}
-                        isEditing={true}
-                        onUpdate={(content) => onUpdateGlobalBlock(activeNav.id, content)}
-                      />
-                    </EditorPopoverShell>
-                  </PopoverContent>
-                </Popover>
+                  onUpdate={(content) => onUpdateGlobalBlock(activeNav.id, content)}
+                  onClose={() => onSetOpenGlobalEditorId(null)}
+                />
 
                 <button onClick={() => onDeleteGlobalBlock(activeNav.id)} className="p-2 text-gray-400 hover:text-red-600">
                   <Trash2 className="w-4 h-4" />
@@ -224,39 +173,14 @@ export const PageRenderer: React.FC<PageRendererProps> = ({
                         <GripVertical className="w-4 h-4" />
                       </button>
 
-                      {/* EDIT (Popover) */}
-                      <Popover
-                        open={openBlockEditorId === block.id}
+                      {/* EDIT (Drawer) */}
+                      <BlockEditorDrawer
+                        block={block}
+                        isOpen={openBlockEditorId === block.id}
                         onOpenChange={(open) => onSetOpenBlockEditorId(open ? block.id : null)}
-                      >
-                        <PopoverTrigger asChild>
-                          <button
-                            className={`p-2 hover:text-blue-600 ${
-                              openBlockEditorId === block.id ? 'text-blue-600' : 'text-gray-400'
-                            }`}
-                            aria-label="Edit block"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                        </PopoverTrigger>
-                        <PopoverContent
-                          align="start"
-                          side="right"
-                          className="relative p-0 border-none shadow-none bg-transparent"
-                        >
-                          <EditorPopoverShell
-                            title={`Edit ${block.type.toUpperCase()}`}
-                            onClose={() => onSetOpenBlockEditorId(null)}
-                            onSave={() => onSetOpenBlockEditorId(null)}
-                          >
-                            <BlockRenderer
-                              block={block}
-                              isEditing={true}
-                              onUpdate={(content) => onUpdateBlock(block.id, content)}
-                            />
-                          </EditorPopoverShell>
-                        </PopoverContent>
-                      </Popover>
+                        onUpdate={(content) => onUpdateBlock(block.id, content)}
+                        onClose={() => onSetOpenBlockEditorId(null)}
+                      />
 
                       {/* DELETE */}
                       <button onClick={() => onDeleteBlock(block.id)} className="p-2 text-gray-400 hover:text-red-600">
