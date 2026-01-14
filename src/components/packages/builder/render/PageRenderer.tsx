@@ -28,6 +28,18 @@ interface Page {
   isActive: boolean
 }
 
+interface ThemeColors {
+  primary: string
+  secondary: string
+  accent: string
+  background: string
+  foreground: string
+  muted: string
+  mutedForeground: string
+  border: string
+  [key: string]: string
+}
+
 interface PageRendererProps {
   activePage: Page | undefined
   activeHeader: GlobalBlock | undefined
@@ -48,6 +60,7 @@ interface PageRendererProps {
   onDragOver: (e: React.DragEvent, index?: number) => void
   onDragLeave: (e: React.DragEvent) => void
   onDrop: (e: React.DragEvent, targetIndex: number) => void
+  themeColors?: ThemeColors
 }
 
 export const PageRenderer: React.FC<PageRendererProps> = ({
@@ -70,6 +83,7 @@ export const PageRenderer: React.FC<PageRendererProps> = ({
   onDragOver,
   onDragLeave,
   onDrop,
+  themeColors,
 }) => {
 
   const [ isEditingHeader, setIsEditingHeader ] = useState(false)
@@ -91,6 +105,7 @@ export const PageRenderer: React.FC<PageRendererProps> = ({
                   onOpenChange={(open) => setIsEditingHeader(open)}
                   onUpdate={(content) => onUpdateGlobalBlock(activeHeader.id, content)}
                   onClose={() => setIsEditingHeader(false)}
+                  themeColors={themeColors}
                 />
 
                 <button onClick={() => onDeleteGlobalBlock(activeHeader.id)} className="p-2 text-gray-400 hover:text-red-600">
@@ -99,7 +114,7 @@ export const PageRenderer: React.FC<PageRendererProps> = ({
               </div>
             </div>
           )}
-          <BlockRenderer block={activeHeader} isEditing={false} onUpdate={() => {}} />
+          <BlockRenderer block={activeHeader} isEditing={false} onUpdate={() => {}} themeColors={themeColors} />
         </div>
       )}
 
@@ -116,6 +131,7 @@ export const PageRenderer: React.FC<PageRendererProps> = ({
                   onOpenChange={(open) => onSetOpenGlobalEditorId(open ? activeNav.id : null)}
                   onUpdate={(content) => onUpdateGlobalBlock(activeNav.id, content)}
                   onClose={() => onSetOpenGlobalEditorId(null)}
+                  themeColors={themeColors}
                 />
 
                 <button onClick={() => onDeleteGlobalBlock(activeNav.id)} className="p-2 text-gray-400 hover:text-red-600">
@@ -124,7 +140,7 @@ export const PageRenderer: React.FC<PageRendererProps> = ({
               </div>
             </div>
           )}
-          <BlockRenderer block={activeNav} isEditing={false} onUpdate={() => {}} />
+          <BlockRenderer block={activeNav} isEditing={false} onUpdate={() => {}} themeColors={themeColors} />
         </div>
       )}
 
@@ -180,6 +196,7 @@ export const PageRenderer: React.FC<PageRendererProps> = ({
                         onOpenChange={(open) => onSetOpenBlockEditorId(open ? block.id : null)}
                         onUpdate={(content) => onUpdateBlock(block.id, content)}
                         onClose={() => onSetOpenBlockEditorId(null)}
+                        themeColors={themeColors}
                       />
 
                       {/* DELETE */}
@@ -195,6 +212,7 @@ export const PageRenderer: React.FC<PageRendererProps> = ({
                   block={block}
                   isEditing={false}
                   onUpdate={() => {}}
+                  themeColors={themeColors}
                 />
               </div>
 

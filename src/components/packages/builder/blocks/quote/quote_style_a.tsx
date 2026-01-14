@@ -3,6 +3,18 @@ import React from 'react'
 import { Mail, Phone, ArrowRight, Check } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 
+interface ThemeColors {
+  primary: string
+  secondary: string
+  accent: string
+  background: string
+  foreground: string
+  muted: string
+  mutedForeground: string
+  border: string
+  [key: string]: string
+}
+
 interface QuoteStyleAProps {
   content: {
     title?: string
@@ -10,10 +22,22 @@ interface QuoteStyleAProps {
     description?: string
     backgroundImage?: string
     formFields?: any
+    backgroundColor?: string
+    textColor?: string
   }
+  themeColors?: ThemeColors
 }
 
-export default function QuoteStyleA({ content }: QuoteStyleAProps) {
+// Helper function to resolve color - if it's a key in themeColors, return the value, otherwise return as-is
+const resolveColor = (color: string | undefined, themeColors?: ThemeColors): string | undefined => {
+  if (!color) return undefined
+  if (themeColors && color in themeColors) {
+    return themeColors[color]
+  }
+  return color
+}
+
+export default function QuoteStyleA({ content, themeColors }: QuoteStyleAProps) {
   const {
     title = 'Get Your Quote',
     subtitle = 'Fast, friendly quotes for your project',
@@ -22,8 +46,11 @@ export default function QuoteStyleA({ content }: QuoteStyleAProps) {
     formFields = {}
   } = content
 
+  const backgroundColor = resolveColor(content.backgroundColor, themeColors)
+  const textColor = resolveColor(content.textColor, themeColors)
+
   return (
-    <div className="w-full bg-background text-foreground">
+    <div className="w-full" style={{ backgroundColor, color: textColor }}>
       {/* HERO */}
       <section className="relative w-full min-h-[50vh] flex items-center px-8 py-24 overflow-hidden">
         {backgroundImage && (

@@ -213,6 +213,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       triggerClassName={`p-1 text-xs hover:text-blue-600 ${
                         openGlobalEditorId === existingBlock.id ? 'text-blue-600' : 'text-gray-400'
                       }`}
+                      themeColors={themeColors}
                     />
 
                     {/* DELETE */}

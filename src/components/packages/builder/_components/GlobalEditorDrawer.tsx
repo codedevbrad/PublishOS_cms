@@ -12,6 +12,18 @@ import {
   DrawerClose,
 } from '@/src/components/ui/drawer'
 
+interface ThemeColors {
+  primary: string
+  secondary: string
+  accent: string
+  background: string
+  foreground: string
+  muted: string
+  mutedForeground: string
+  border: string
+  [key: string]: string
+}
+
 interface GlobalBlock {
   id: string
   type: 'header' | 'nav'
@@ -27,6 +39,7 @@ interface GlobalEditorDrawerProps {
   onUpdate: (content: any) => void
   onClose: () => void
   triggerClassName?: string
+  themeColors?: ThemeColors
 }
 
 export const GlobalEditorDrawer: React.FC<GlobalEditorDrawerProps> = ({
@@ -37,6 +50,7 @@ export const GlobalEditorDrawer: React.FC<GlobalEditorDrawerProps> = ({
   onUpdate,
   onClose,
   triggerClassName,
+  themeColors,
 }) => {
   const defaultClassName = `p-2 hover:text-blue-600 ${
     isOpen ? 'text-blue-600' : 'text-gray-400'
@@ -61,6 +75,7 @@ export const GlobalEditorDrawer: React.FC<GlobalEditorDrawerProps> = ({
             block={block}
             isEditing={true}
             onUpdate={onUpdate}
+            themeColors={themeColors}
           />
         </div>
         <DrawerFooter className="border-t">

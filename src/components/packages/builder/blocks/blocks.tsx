@@ -2,6 +2,7 @@
 import React from 'react';
 import { Layout, Image, FileText, HelpCircle, MapPin, Phone, Users, Monitor, Tablet, Smartphone, Quote, Grid3x3, Briefcase } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { ColorPaletteSelector } from '../_components/ColorPaletteSelector';
 
 // Dynamically import block components
 const HeroBlock = dynamic(() => import('./hero/HeroBlock'), { ssr: false });
@@ -11,6 +12,10 @@ const ImageBlock = dynamic(() => import('./image/ImageBlock'), { ssr: false });
 const FAQBlock = dynamic(() => import('./faq/FAQBlock'), { ssr: false });
 const GalleryBlock = dynamic(() => import('./gallery/GalleryBlock'), { ssr: false });
 const ServicesListBlock = dynamic(() => import('./services/ServicesListBlock'), { ssr: false });
+
+// Import global block components
+import { HeaderBlock, HeaderBlockEditor } from '../globalblocks/header/headerBlock';
+import { NavigationBlock, NavigationBlockEditor } from '../globalblocks/navigation/navigationBlock';
 
 interface ViewportConfig {
   name: string;
@@ -232,97 +237,86 @@ export const getDefaultBlockContent = (type: string, variant?: string, pages?: P
   }
 };
 
+// Theme colors interface
+interface ThemeColors {
+  primary: string;
+  secondary: string;
+  accent: string;
+  background: string;
+  foreground: string;
+  muted: string;
+  mutedForeground: string;
+  border: string;
+  [key: string]: string;
+}
+
 // Block renderer components
-export const BlockRenderer: React.FC<{ block: ContentBlock | GlobalBlock; isEditing: boolean; onUpdate: (content: any) => void }> = ({ 
+export const BlockRenderer: React.FC<{ 
+  block: ContentBlock | GlobalBlock; 
+  isEditing: boolean; 
+  onUpdate: (content: any) => void;
+  themeColors?: ThemeColors;
+}> = ({ 
   block, 
   isEditing, 
-  onUpdate 
+  onUpdate,
+  themeColors
 }) => {
   const { type, content } = block;
 
   if (isEditing) {
     return (
       <div className="border-2 border-dashed border-blue-300 p-4 rounded-lg bg-blue-50">
-        <BlockEditor type={type} content={content} onUpdate={onUpdate} />
+        <BlockEditor type={type} content={content} onUpdate={onUpdate} themeColors={themeColors} />
       </div>
     );
   }
 
   switch (type) {
     case 'header':
-      return (
-        <div 
-          className={`px-8 py-4 flex items-center justify-between border-b ${content.height || 'h-16'}`}
-          style={{ backgroundColor: content.backgroundColor, color: content.textColor }}
-        >
-          <div className="flex items-center space-x-3">
-            <div className="text-xl font-bold">{content.title || 'Your Site Title'}</div>
-          </div>
-        </div>
-      );
+      return <HeaderBlock content={content} themeColors={themeColors} />;
     
     case 'nav':
-      return (
-        <nav 
-          className="px-8 py-3 border-b"
-          style={{ backgroundColor: content.backgroundColor, color: content.textColor }}
-        >
-          <ul className={`flex space-x-6 ${content.alignment === 'center' ? 'justify-center' : content.alignment === 'right' ? 'justify-end' : 'justify-start'}`}>
-            {(content.items || []).map((item: any, index: number) => (
-              <li key={index}>
-                <button
-                  onClick={() => {
-                    // If this nav item is connected to a page, switch to that page
-                    if (item.pageId) {
-                      // In a real app, you'd handle routing here
-                      if (typeof window !== 'undefined') {
-                        console.log(`Navigate to page: ${item.pageId}`);
-                      }
-                    }
-                  }}
-                  className={`hover:opacity-75 transition-opacity cursor-pointer ${
-                    item.pageId ? 'font-medium' : ''
-                  }`}
-                  style={{ color: content.textColor }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = content.hoverColor}
-                  onMouseLeave={(e) => e.currentTarget.style.color = content.textColor}
-                >
-                  {item.label || ''}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      );
+      return <NavigationBlock content={content} themeColors={themeColors} />;
     
     case 'hero':
       const heroVariant = content.variant || 'style_a';
-      return <HeroBlock variant={heroVariant} content={content} />;
+      return <HeroBlock variant={heroVariant} content={content} themeColors={themeColors} />;
     
     case 'quote':
       const quoteVariant = content.variant || 'style_a';
-      return <QuoteBlock variant={quoteVariant} content={content} />;
+      return <QuoteBlock variant={quoteVariant} content={content} themeColors={themeColors} />;
     
     case 'gallery':
       const galleryVariant = content.variant || 'style_a';
-      return <GalleryBlock variant={galleryVariant} content={content} />;
+      return <GalleryBlock variant={galleryVariant} content={content} themeColors={themeColors} />;
     
     case 'services':
       const servicesVariant = content.variant || 'style_a';
-      return <ServicesListBlock variant={servicesVariant} content={content} />;
+      return <ServicesListBlock variant={servicesVariant} content={content} themeColors={themeColors} />;
     
     case 'about':
-      return <AboutBlock content={content} />;
+      return <AboutBlock content={content} themeColors={themeColors} />;
     
     case 'image':
-      return <ImageBlock content={content} />;
+      return <ImageBlock content={content} themeColors={themeColors} />;
     
     case 'faq':
-      return <FAQBlock content={content} />;
+      return <FAQBlock content={content} themeColors={themeColors} />;
     
     case 'contact':
+      // Helper function to resolve color
+      const resolveContactColor = (color: string | undefined): string | undefined => {
+        if (!color) return undefined
+        if (themeColors && color in themeColors) {
+          return themeColors[color]
+        }
+        return color
+      }
+      const contactBgColor = resolveContactColor(content.backgroundColor)
+      const contactTextColor = resolveContactColor(content.textColor)
       return (
-        <div className="py-16 px-8 bg-gray-900 text-white">
+        <div className="py-16 px-8" style={{ backgroundColor: contactBgColor || '#1f2937', color: contactTextColor || '#ffffff' }}>
           <div className="max-w-2xl mx-auto text-center">
             <h2 className="text-3xl font-bold mb-8">{content.title}</h2>
             <div className="space-y-4">
@@ -344,8 +338,18 @@ export const BlockRenderer: React.FC<{ block: ContentBlock | GlobalBlock; isEdit
       );
     
     case 'team':
+      // Helper function to resolve color
+      const resolveTeamColor = (color: string | undefined): string | undefined => {
+        if (!color) return undefined
+        if (themeColors && color in themeColors) {
+          return themeColors[color]
+        }
+        return color
+      }
+      const teamBgColor = resolveTeamColor(content.backgroundColor)
+      const teamTextColor = resolveTeamColor(content.textColor)
       return (
-        <div className="py-16 px-8">
+        <div className="py-16 px-8" style={{ backgroundColor: teamBgColor, color: teamTextColor }}>
           <div className="max-w-6xl mx-auto">
             <h2 className="text-3xl font-bold mb-12 text-center">{content.title}</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -374,10 +378,11 @@ export const BlockRenderer: React.FC<{ block: ContentBlock | GlobalBlock; isEdit
 };
 
 // Block editor component for inline editing
-const BlockEditor: React.FC<{ type: string; content: any; onUpdate: (content: any) => void }> = ({ 
+const BlockEditor: React.FC<{ type: string; content: any; onUpdate: (content: any) => void; themeColors?: ThemeColors }> = ({ 
   type, 
   content, 
-  onUpdate 
+  onUpdate,
+  themeColors
 }) => {
   const handleInputChange = (field: string, value: any) => {
     onUpdate({ ...content, [field]: value });
@@ -400,143 +405,30 @@ const BlockEditor: React.FC<{ type: string; content: any; onUpdate: (content: an
 
   switch (type) {
     case 'header':
-      return (
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Title</label>
-            <input
-              type="text"
-              value={content.title || ''}
-              onChange={(e) => handleInputChange('title', e.target.value)}
-              className="w-full p-2 border rounded-md"
-              placeholder="Your Site Title"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Background Color</label>
-            <input
-              type="color"
-              value={content.backgroundColor}
-              onChange={(e) => handleInputChange('backgroundColor', e.target.value)}
-              className="w-full p-2 border rounded-md h-10"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Text Color</label>
-            <input
-              type="color"
-              value={content.textColor}
-              onChange={(e) => handleInputChange('textColor', e.target.value)}
-              className="w-full p-2 border rounded-md h-10"
-            />
-          </div>
-        </div>
-      );
+      return <HeaderBlockEditor content={content} onUpdate={onUpdate} themeColors={themeColors} />;
 
     case 'nav':
-      return (
-        <div className="space-y-4">
-          <div className="flex items-center space-x-2 mb-4">
-            <input
-              type="checkbox"
-              id="autoSync"
-              checked={content.autoSync || false}
-              onChange={(e) => handleInputChange('autoSync', e.target.checked)}
-              className="rounded"
-            />
-            <label htmlFor="autoSync" className="text-sm font-medium">
-              Auto-sync with pages
-            </label>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-1">Background Color</label>
-            <input
-              type="color"
-              value={content.backgroundColor}
-              onChange={(e) => handleInputChange('backgroundColor', e.target.value)}
-              className="w-full p-2 border rounded-md h-10"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Text Color</label>
-            <input
-              type="color"
-              value={content.textColor}
-              onChange={(e) => handleInputChange('textColor', e.target.value)}
-              className="w-full p-2 border rounded-md h-10"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Hover Color</label>
-            <input
-              type="color"
-              value={content.hoverColor}
-              onChange={(e) => handleInputChange('hoverColor', e.target.value)}
-              className="w-full p-2 border rounded-md h-10"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Alignment</label>
-            <select
-              value={content.alignment}
-              onChange={(e) => handleInputChange('alignment', e.target.value)}
-              className="w-full p-2 border rounded-md"
-            >
-              <option value="left">Left</option>
-              <option value="center">Center</option>
-              <option value="right">Right</option>
-            </select>
-          </div>
-          
-          {!content.autoSync && (
-            <div>
-              <label className="block text-sm font-medium mb-2">Navigation Items</label>
-              {content.items.map((item: any, index: number) => (
-                <div key={index} className="border p-3 rounded-md space-y-2 mb-2">
-                  <input
-                    type="text"
-                    value={item.label}
-                    onChange={(e) => handleArrayChange('items', index, 'label', e.target.value)}
-                    className="w-full p-2 border rounded-md text-sm"
-                    placeholder="Label"
-                  />
-                  <input
-                    type="text"
-                    value={item.link}
-                    onChange={(e) => handleArrayChange('items', index, 'link', e.target.value)}
-                    className="w-full p-2 border rounded-md text-sm"
-                    placeholder="Link (e.g., /about)"
-                  />
-                  <button
-                    onClick={() => removeArrayItem('items', index)}
-                    className="text-red-500 text-sm hover:text-red-700"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
-              <button
-                onClick={() => addArrayItem('items', { label: '', link: '', pageId: null })}
-                className="text-blue-500 text-sm hover:text-blue-700"
-              >
-                + Add Nav Item
-              </button>
-            </div>
-          )}
-          
-          {content.autoSync && (
-            <div className="bg-blue-50 p-3 rounded-md">
-              <p className="text-sm text-blue-700">
-                Navigation items are automatically synchronized with your pages. 
-                Create, rename, or delete pages to update the navigation.
-              </p>
-            </div>
-          )}
-        </div>
-      );
+      return <NavigationBlockEditor content={content} onUpdate={onUpdate} themeColors={themeColors} />;
 
     case 'hero':
+      if (!themeColors) {
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Title</label>
+              <input
+                type="text"
+                value={content.title}
+                onChange={(e) => handleInputChange('title', e.target.value)}
+                className="w-full p-2 border rounded-md"
+              />
+            </div>
+            <div className="text-sm text-gray-500">
+              Theme colors not available. Please configure theme colors first.
+            </div>
+          </div>
+        )
+      }
       return (
         <div className="space-y-4">
           <div>
@@ -566,10 +458,40 @@ const BlockEditor: React.FC<{ type: string; content: any; onUpdate: (content: an
               className="w-full p-2 border rounded-md"
             />
           </div>
+          <ColorPaletteSelector
+            themeColors={themeColors}
+            selectedColor={content.backgroundColor}
+            onSelect={(colorKey) => handleInputChange('backgroundColor', colorKey)}
+            label="Background Color"
+          />
+          <ColorPaletteSelector
+            themeColors={themeColors}
+            selectedColor={content.textColor}
+            onSelect={(colorKey) => handleInputChange('textColor', colorKey)}
+            label="Text Color"
+          />
         </div>
       );
     
     case 'about':
+      if (!themeColors) {
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Title</label>
+              <input
+                type="text"
+                value={content.title}
+                onChange={(e) => handleInputChange('title', e.target.value)}
+                className="w-full p-2 border rounded-md"
+              />
+            </div>
+            <div className="text-sm text-gray-500">
+              Theme colors not available. Please configure theme colors first.
+            </div>
+          </div>
+        )
+      }
       return (
         <div className="space-y-4">
           <div>
@@ -589,10 +511,41 @@ const BlockEditor: React.FC<{ type: string; content: any; onUpdate: (content: an
               className="w-full p-2 border rounded-md h-24"
             />
           </div>
+          <ColorPaletteSelector
+            themeColors={themeColors}
+            selectedColor={content.backgroundColor}
+            onSelect={(colorKey) => handleInputChange('backgroundColor', colorKey)}
+            label="Background Color"
+          />
+          <ColorPaletteSelector
+            themeColors={themeColors}
+            selectedColor={content.textColor}
+            onSelect={(colorKey) => handleInputChange('textColor', colorKey)}
+            label="Text Color"
+          />
         </div>
       );
     
     case 'image':
+      if (!themeColors) {
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Image URL</label>
+              <input
+                type="text"
+                value={content.src}
+                onChange={(e) => handleInputChange('src', e.target.value)}
+                className="w-full p-2 border rounded-md"
+                placeholder="https://example.com/image.jpg"
+              />
+            </div>
+            <div className="text-sm text-gray-500">
+              Theme colors not available. Please configure theme colors first.
+            </div>
+          </div>
+        )
+      }
       return (
         <div className="space-y-4">
           <div>
@@ -623,10 +576,34 @@ const BlockEditor: React.FC<{ type: string; content: any; onUpdate: (content: an
               className="w-full p-2 border rounded-md"
             />
           </div>
+          <ColorPaletteSelector
+            themeColors={themeColors}
+            selectedColor={content.backgroundColor}
+            onSelect={(colorKey) => handleInputChange('backgroundColor', colorKey)}
+            label="Background Color"
+          />
         </div>
       );
     
     case 'faq':
+      if (!themeColors) {
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Title</label>
+              <input
+                type="text"
+                value={content.title}
+                onChange={(e) => handleInputChange('title', e.target.value)}
+                className="w-full p-2 border rounded-md"
+              />
+            </div>
+            <div className="text-sm text-gray-500">
+              Theme colors not available. Please configure theme colors first.
+            </div>
+          </div>
+        )
+      }
       return (
         <div className="space-y-4">
           <div>
@@ -670,10 +647,40 @@ const BlockEditor: React.FC<{ type: string; content: any; onUpdate: (content: an
               + Add FAQ Item
             </button>
           </div>
+          <ColorPaletteSelector
+            themeColors={themeColors}
+            selectedColor={content.backgroundColor}
+            onSelect={(colorKey) => handleInputChange('backgroundColor', colorKey)}
+            label="Background Color"
+          />
+          <ColorPaletteSelector
+            themeColors={themeColors}
+            selectedColor={content.textColor}
+            onSelect={(colorKey) => handleInputChange('textColor', colorKey)}
+            label="Text Color"
+          />
         </div>
       );
 
     case 'contact':
+      if (!themeColors) {
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Title</label>
+              <input
+                type="text"
+                value={content.title}
+                onChange={(e) => handleInputChange('title', e.target.value)}
+                className="w-full p-2 border rounded-md"
+              />
+            </div>
+            <div className="text-sm text-gray-500">
+              Theme colors not available. Please configure theme colors first.
+            </div>
+          </div>
+        )
+      }
       return (
         <div className="space-y-4">
           <div>
@@ -711,10 +718,40 @@ const BlockEditor: React.FC<{ type: string; content: any; onUpdate: (content: an
               className="w-full p-2 border rounded-md h-16"
             />
           </div>
+          <ColorPaletteSelector
+            themeColors={themeColors}
+            selectedColor={content.backgroundColor}
+            onSelect={(colorKey) => handleInputChange('backgroundColor', colorKey)}
+            label="Background Color"
+          />
+          <ColorPaletteSelector
+            themeColors={themeColors}
+            selectedColor={content.textColor}
+            onSelect={(colorKey) => handleInputChange('textColor', colorKey)}
+            label="Text Color"
+          />
         </div>
       );
 
     case 'team':
+      if (!themeColors) {
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Title</label>
+              <input
+                type="text"
+                value={content.title}
+                onChange={(e) => handleInputChange('title', e.target.value)}
+                className="w-full p-2 border rounded-md"
+              />
+            </div>
+            <div className="text-sm text-gray-500">
+              Theme colors not available. Please configure theme colors first.
+            </div>
+          </div>
+        )
+      }
       return (
         <div className="space-y-4">
           <div>
@@ -765,10 +802,41 @@ const BlockEditor: React.FC<{ type: string; content: any; onUpdate: (content: an
               + Add Team Member
             </button>
           </div>
+          <ColorPaletteSelector
+            themeColors={themeColors}
+            selectedColor={content.backgroundColor}
+            onSelect={(colorKey) => handleInputChange('backgroundColor', colorKey)}
+            label="Background Color"
+          />
+          <ColorPaletteSelector
+            themeColors={themeColors}
+            selectedColor={content.textColor}
+            onSelect={(colorKey) => handleInputChange('textColor', colorKey)}
+            label="Text Color"
+          />
         </div>
       );
 
     case 'gallery':
+      if (!themeColors) {
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Title</label>
+              <input
+                type="text"
+                value={content.title || ''}
+                onChange={(e) => handleInputChange('title', e.target.value)}
+                className="w-full p-2 border rounded-md"
+                placeholder="Gallery Title"
+              />
+            </div>
+            <div className="text-sm text-gray-500">
+              Theme colors not available. Please configure theme colors first.
+            </div>
+          </div>
+        )
+      }
       return (
         <div className="space-y-4">
           <div>
@@ -842,10 +910,45 @@ const BlockEditor: React.FC<{ type: string; content: any; onUpdate: (content: an
               + Add Image
             </button>
           </div>
+          {themeColors && (
+            <>
+              <ColorPaletteSelector
+                themeColors={themeColors}
+                selectedColor={content.backgroundColor}
+                onSelect={(colorKey) => handleInputChange('backgroundColor', colorKey)}
+                label="Background Color"
+              />
+              <ColorPaletteSelector
+                themeColors={themeColors}
+                selectedColor={content.textColor}
+                onSelect={(colorKey) => handleInputChange('textColor', colorKey)}
+                label="Text Color"
+              />
+            </>
+          )}
         </div>
       );
 
     case 'services':
+      if (!themeColors) {
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Title</label>
+              <input
+                type="text"
+                value={content.title || ''}
+                onChange={(e) => handleInputChange('title', e.target.value)}
+                className="w-full p-2 border rounded-md"
+                placeholder="Services Title"
+              />
+            </div>
+            <div className="text-sm text-gray-500">
+              Theme colors not available. Please configure theme colors first.
+            </div>
+          </div>
+        )
+      }
       return (
         <div className="space-y-4">
           <div>
@@ -934,6 +1037,22 @@ const BlockEditor: React.FC<{ type: string; content: any; onUpdate: (content: an
               + Add Service
             </button>
           </div>
+          {themeColors && (
+            <>
+              <ColorPaletteSelector
+                themeColors={themeColors}
+                selectedColor={content.backgroundColor}
+                onSelect={(colorKey) => handleInputChange('backgroundColor', colorKey)}
+                label="Background Color"
+              />
+              <ColorPaletteSelector
+                themeColors={themeColors}
+                selectedColor={content.textColor}
+                onSelect={(colorKey) => handleInputChange('textColor', colorKey)}
+                label="Text Color"
+              />
+            </>
+          )}
         </div>
       );
 

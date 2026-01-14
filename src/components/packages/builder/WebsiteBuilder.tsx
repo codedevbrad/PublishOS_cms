@@ -531,6 +531,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
+          themeColors={themeColors}
         />
       </ViewportSandbox>
     </div>

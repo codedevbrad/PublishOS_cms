@@ -20,12 +20,25 @@ interface ContentBlock {
   variant?: string
 }
 
+interface ThemeColors {
+  primary: string
+  secondary: string
+  accent: string
+  background: string
+  foreground: string
+  muted: string
+  mutedForeground: string
+  border: string
+  [key: string]: string
+}
+
 interface BlockEditorDrawerProps {
   block: ContentBlock
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   onUpdate: (content: any) => void
   onClose: () => void
+  themeColors?: ThemeColors
 }
 
 export const BlockEditorDrawer: React.FC<BlockEditorDrawerProps> = ({
@@ -34,6 +47,7 @@ export const BlockEditorDrawer: React.FC<BlockEditorDrawerProps> = ({
   onOpenChange,
   onUpdate,
   onClose,
+  themeColors,
 }) => {
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange} direction="right">
@@ -56,6 +70,7 @@ export const BlockEditorDrawer: React.FC<BlockEditorDrawerProps> = ({
             block={block}
             isEditing={true}
             onUpdate={onUpdate}
+            themeColors={themeColors}
           />
         </div>
         <DrawerFooter className="border-t">
