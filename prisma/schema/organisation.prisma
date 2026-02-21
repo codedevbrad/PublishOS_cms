@@ -77,7 +77,6 @@ model Website {
     domainUrl String
 
     isActive  Boolean @default(true)
-
     
     sites WebsiteCreation[]
 
