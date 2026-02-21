@@ -68,6 +68,7 @@ export async function getWebsite(websiteId: string) {
           where: { isActive: true },
           take: 1,
           orderBy: { updatedAt: "desc" },
+          include: { pages: true },
         },
       },
     });
@@ -131,20 +132,6 @@ export async function createWebsite(
       return { success: false, error: "Domain URL is required" };
     }
 
-    // Default siteData structure
-    const defaultSiteData = {
-      pages: [
-        {
-          id: "1",
-          name: "Home",
-          slug: "home",
-          blocks: [],
-          isActive: true,
-        },
-      ],
-      globalBlocks: [],
-    };
-
     const website = await prisma.website.create({
       data: {
         name: name.trim(),
@@ -154,8 +141,15 @@ export async function createWebsite(
         sites: {
           create: {
             name: "Main",
-            siteData: defaultSiteData,
+            globalBlocks: [],
             isActive: true,
+            pages: {
+              create: {
+                title: "Home",
+                slug: "home",
+                blocksJson: [],
+              },
+            },
           },
         },
       },
@@ -226,9 +220,21 @@ export async function updateWebsite(
   }
 }
 
+interface SavePageData {
+  title: string;
+  slug: string;
+  blocksJson: Prisma.InputJsonValue;
+}
+
+interface SaveSiteData {
+  pages: SavePageData[];
+  globalBlocks: Prisma.InputJsonValue;
+  themeColors?: Prisma.InputJsonValue;
+}
+
 export async function updateWebsiteSiteData(
   websiteCreationId: string,
-  siteData: Prisma.InputJsonValue
+  siteData: SaveSiteData
 ): Promise<ActionResult> {
   try {
     const session = await auth();
@@ -236,7 +242,6 @@ export async function updateWebsiteSiteData(
       return { success: false, error: "Unauthorized" };
     }
 
-    // Get website creation and verify user is a member
     const websiteCreation = await prisma.websiteCreation.findUnique({
       where: { id: websiteCreationId },
       include: {
@@ -264,11 +269,29 @@ export async function updateWebsiteSiteData(
       return { success: false, error: "Unauthorized" };
     }
 
-    await prisma.websiteCreation.update({
-      where: { id: websiteCreationId },
-      data: {
-        siteData: siteData,
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.page.deleteMany({
+        where: { websiteCreationId },
+      });
+
+      if (siteData.pages.length > 0) {
+        await tx.page.createMany({
+          data: siteData.pages.map((page) => ({
+            title: page.title,
+            slug: page.slug,
+            blocksJson: page.blocksJson,
+            websiteCreationId,
+          })),
+        });
+      }
+
+      await tx.websiteCreation.update({
+        where: { id: websiteCreationId },
+        data: {
+          globalBlocks: siteData.globalBlocks,
+          themeColors: siteData.themeColors ?? undefined,
+        },
+      });
     });
 
     return { success: true };
@@ -551,6 +574,7 @@ export async function getWebsiteCreations(websiteId: string) {
     const creations = await prisma.websiteCreation.findMany({
       where: { websiteId },
       orderBy: { updatedAt: "desc" },
+      include: { pages: true },
     });
 
     return creations;
@@ -562,8 +586,7 @@ export async function getWebsiteCreations(websiteId: string) {
 
 export async function createWebsiteCreation(
   websiteId: string,
-  name?: string,
-  siteData?: Prisma.InputJsonValue
+  name?: string
 ): Promise<ActionResult<{ id: string }>> {
   try {
     const session = await auth();
@@ -571,7 +594,6 @@ export async function createWebsiteCreation(
       return { success: false, error: "Unauthorized" };
     }
 
-    // Get website and verify user is a member
     const website = await prisma.website.findUnique({
       where: { id: websiteId },
       include: {
@@ -595,33 +617,6 @@ export async function createWebsiteCreation(
       return { success: false, error: "Unauthorized" };
     }
 
-    // If no siteData provided, use default or copy from active creation
-    let creationSiteData = siteData;
-    if (!creationSiteData) {
-      const activeCreation = await prisma.websiteCreation.findFirst({
-        where: { websiteId, isActive: true },
-      });
-
-      if (activeCreation) {
-        creationSiteData = activeCreation.siteData as Prisma.InputJsonValue;
-      } else {
-        // Default siteData structure
-        creationSiteData = {
-          pages: [
-            {
-              id: "1",
-              name: "Home",
-              slug: "home",
-              blocks: [],
-              isActive: true,
-            },
-          ],
-          globalBlocks: [],
-        };
-      }
-    }
-
-    // Generate default name if not provided or empty
     let creationName = name?.trim();
     if (!creationName || creationName.length === 0) {
       const creationCount = await prisma.websiteCreation.count({
@@ -630,28 +625,31 @@ export async function createWebsiteCreation(
       creationName = `Draft ${creationCount + 1}`;
     }
 
-    // Ensure name is never empty (safety check)
     if (!creationName || creationName.trim().length === 0) {
       creationName = "Untitled Draft";
     }
+
+    const activeCreation = await prisma.websiteCreation.findFirst({
+      where: { websiteId, isActive: true },
+      include: { pages: true },
+    });
 
     const creation = await prisma.websiteCreation.create({
       data: {
         websiteId,
         name: creationName.trim(),
-        siteData: creationSiteData ?? {
-          pages: [
-            {
-              id: "1",
-              name: "Home",
-              slug: "home",
-              blocks: [],
-              isActive: true,
-            },
-          ],
-          globalBlocks: [],
-        },
+        globalBlocks: activeCreation?.globalBlocks ?? [],
+        themeColors: activeCreation?.themeColors ?? undefined,
         isActive: false,
+        pages: {
+          create: activeCreation?.pages?.length
+            ? activeCreation.pages.map((p) => ({
+                title: p.title,
+                slug: p.slug,
+                blocksJson: p.blocksJson,
+              }))
+            : [{ title: "Home", slug: "home", blocksJson: [] }],
+        },
       },
     });
 

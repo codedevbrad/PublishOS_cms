@@ -136,17 +136,20 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
   const activeHeader = globalBlocks.find((b) => b.type === 'header' && b.isActive)
   const activeNav = globalBlocks.find((b) => b.type === 'nav' && b.isActive)
 
-  // Save function
   const handleSave = useCallback(async () => {
-    const siteData: SiteData = {
-      pages,
+    const savePayload = {
+      pages: pages.map((p) => ({
+        title: p.name,
+        slug: p.slug,
+        blocksJson: p.blocks,
+      })),
       globalBlocks,
       themeColors,
     }
 
     startSaving(async () => {
       setSaveStatus('saving')
-      const result = await updateWebsiteSiteData(websiteCreationId, siteData)
+      const result = await updateWebsiteSiteData(websiteCreationId, savePayload)
       if (result.success) {
         setSaveStatus('success')
         setTimeout(() => setSaveStatus('idle'), 2000)

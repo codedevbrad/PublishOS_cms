@@ -3,7 +3,6 @@ import { getWebsite, getWebsiteCreations } from "@/src/domains/website/db"
 import { auth } from "@/auth"
 import { WebsiteBuilder } from "@/src/components/packages/builder/WebsiteBuilder"
 import { DraftSelectorWrapper } from "./_components/DraftSelectorWrapper"
-import type { Prisma } from "@prisma/client"
 
 interface WebsiteEditPageProps {
   params: Promise<{ orgid: string; domainid: string; websiteid: string }>;
@@ -25,24 +24,15 @@ export default async function WebsiteEditPage({ params, searchParams }: WebsiteE
     notFound();
   }
 
-  // Type assertion for website with domain relation
-  const websiteWithDomain = website as Prisma.WebsiteGetPayload<{
-    include: {
-      domain: {
-        include: {
-          organisation: true;
-        };
-      };
-      sites: true;
-    };
-  }>;
+  const websiteWithDomain = website as NonNullable<typeof website> & {
+    domain: { organisationId: string };
+    domainId: string;
+  };
 
-  // Verify the website belongs to the organisation
   if (websiteWithDomain.domain.organisationId !== orgid) {
     notFound();
   }
 
-  // Verify the website belongs to the domain
   if (websiteWithDomain.domainId !== domainid) {
     notFound();
   }
@@ -54,52 +44,51 @@ export default async function WebsiteEditPage({ params, searchParams }: WebsiteE
     notFound();
   }
 
-  // Type assertion to include name field (Prisma returns all fields but TypeScript may not infer it)
-  const creationsWithName = creations as unknown as Array<{
-    id: string;
-    name: string;
-    siteData: unknown;
-    isActive: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-  }>;
-
   // Determine which creation to show
-  let activeCreation = creationsWithName.find((c) => c.isActive);
+  let activeCreation = creations.find((c) => c.isActive);
   if (draft) {
-    const selectedCreation = creationsWithName.find((c) => c.id === draft);
+    const selectedCreation = creations.find((c) => c.id === draft);
     if (selectedCreation) {
       activeCreation = selectedCreation;
     }
   }
   
-  // Fallback to first creation if no active one
   if (!activeCreation) {
-    activeCreation = creationsWithName[0];
+    activeCreation = creations[0];
+  }
+
+  const initialSiteData: Parameters<typeof WebsiteBuilder>[0]["initialSiteData"] = {
+    pages: activeCreation.pages.map((p) => ({
+      id: p.id,
+      name: p.title,
+      slug: p.slug,
+      blocks: (p.blocksJson as any[]) ?? [],
+      isActive: false,
+    })),
+    globalBlocks: (activeCreation.globalBlocks as any[]) ?? [],
+    themeColors: (activeCreation.themeColors as any) ?? undefined,
+  };
+
+  if (initialSiteData.pages.length > 0) {
+    initialSiteData.pages[0].isActive = true;
   }
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      {/* Draft selector – fixed height */}
       <div className="shrink-0">
         <DraftSelectorWrapper
           websiteId={websiteid}
           currentCreationId={activeCreation.id}
-          creations={creationsWithName}
+          creations={creations}
         />
       </div>
 
-      {/* Builder – fills remaining height */}
       <div className="flex-1 min-h-0 overflow-hidden">
         <WebsiteBuilder
           key={activeCreation.id}
           websiteId={websiteid}
           websiteCreationId={activeCreation.id}
-          initialSiteData={
-            activeCreation.siteData as Parameters<
-              typeof WebsiteBuilder
-            >[0]["initialSiteData"]
-          }
+          initialSiteData={initialSiteData}
         />
       </div>
     </div>

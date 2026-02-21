@@ -16,7 +16,6 @@ import { useRouter } from 'next/navigation'
 interface WebsiteCreation {
   id: string
   name: string
-  siteData: any
   isActive: boolean
   createdAt: Date
   updatedAt: Date

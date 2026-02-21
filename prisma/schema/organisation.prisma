@@ -52,10 +52,15 @@ model Domain {
     updatedAt DateTime @updatedAt
 }
 
+
 model WebsiteCreation {
     id        String   @id @default(cuid())
     name      String
-    siteData  Json
+
+    pages Page[]
+
+    globalBlocks Json @default("[]")
+    themeColors  Json?
 
     website Website @relation(fields: [websiteId], references: [id])
     websiteId String
@@ -68,6 +73,19 @@ model WebsiteCreation {
     // Ensure only one active WebsiteCreation per Website
     // This requires a partial unique index via raw SQL migration
     @@index([websiteId, isActive])
+}
+
+model Page {
+    id        String   @id @default(cuid())
+    title     String
+    slug      String
+    blocksJson Json
+    websiteCreation WebsiteCreation @relation(fields: [websiteCreationId], references: [id], onDelete: Cascade)
+    websiteCreationId String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    @@unique([websiteCreationId, slug])
 }
 
 
@@ -91,3 +109,6 @@ model Website {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }
+
+
+// === //

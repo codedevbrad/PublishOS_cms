@@ -41,13 +41,27 @@ CREATE TABLE "Domain" (
 CREATE TABLE "WebsiteCreation" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "siteData" JSONB NOT NULL,
+    "globalBlocks" JSONB NOT NULL DEFAULT '[]',
+    "themeColors" JSONB,
     "websiteId" TEXT NOT NULL,
     "isActive" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "WebsiteCreation_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Page" (
+    "id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "blocksJson" JSONB NOT NULL,
+    "websiteCreationId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Page_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -86,6 +100,9 @@ CREATE INDEX "ServiceConfig_websiteId_idx" ON "ServiceConfig"("websiteId");
 CREATE INDEX "WebsiteCreation_websiteId_isActive_idx" ON "WebsiteCreation"("websiteId", "isActive");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Page_websiteCreationId_slug_key" ON "Page"("websiteCreationId", "slug");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 
 -- AddForeignKey
@@ -99,6 +116,9 @@ ALTER TABLE "Domain" ADD CONSTRAINT "Domain_organisationId_fkey" FOREIGN KEY ("o
 
 -- AddForeignKey
 ALTER TABLE "WebsiteCreation" ADD CONSTRAINT "WebsiteCreation_websiteId_fkey" FOREIGN KEY ("websiteId") REFERENCES "Website"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Page" ADD CONSTRAINT "Page_websiteCreationId_fkey" FOREIGN KEY ("websiteCreationId") REFERENCES "WebsiteCreation"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Website" ADD CONSTRAINT "Website_organisationId_fkey" FOREIGN KEY ("organisationId") REFERENCES "Organisation"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
