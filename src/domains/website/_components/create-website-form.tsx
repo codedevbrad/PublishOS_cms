@@ -3,13 +3,6 @@
 import { useState, useTransition } from "react";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/src/components/ui/select";
 import { createWebsite } from "../db";
 
 interface CreateWebsiteFormProps {
@@ -27,7 +20,6 @@ export function CreateWebsiteForm({
 }: CreateWebsiteFormProps) {
   const [name, setName] = useState("");
   const [domainName, setDomainName] = useState("");
-  const [tld, setTld] = useState(".co.uk");
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
 
@@ -45,18 +37,11 @@ export function CreateWebsiteForm({
       return;
     }
 
-    if (!tld) {
-      setError("Please select a domain extension");
-      return;
-    }
-
-    const fullDomainUrl = `www.${domainName.trim()}${tld}`;
-
     startTransition(async () => {
       const result = await createWebsite(
         domainId,
         name.trim(),
-        fullDomainUrl
+        domainName.trim()
       );
 
       if (!result.success) {
@@ -85,16 +70,9 @@ export function CreateWebsiteForm({
         />
       </div>
       <div className="space-y-2">
-        <label className="text-sm font-medium">Domain URL *</label>
-        <div className="flex items-center gap-0">
-          <Input
-            type="text"
-            value="www"
-            disabled
-            className="w-20 bg-muted"
-            readOnly
-          />
-          <span className="text-muted-foreground">.</span>
+        <label className="text-sm font-medium">Domain *</label>
+        <div className="flex items-center gap-1">
+          <span className="text-sm text-muted-foreground">www.</span>
           <Input
             type="text"
             value={domainName}
@@ -104,15 +82,7 @@ export function CreateWebsiteForm({
             placeholder="example"
             className="flex-1"
           />
-          <Select value={tld} onValueChange={setTld} disabled={isPending}>
-            <SelectTrigger className="w-32">
-              <SelectValue  />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value=".com">.com</SelectItem>
-              <SelectItem value=".co.uk">.co.uk</SelectItem>
-            </SelectContent>
-          </Select>
+          <span className="text-sm text-muted-foreground">.co.uk</span>
         </div>
       </div>
       {error && (
