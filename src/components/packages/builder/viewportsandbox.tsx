@@ -76,7 +76,7 @@ export default function ViewportSandbox({
     e.stopPropagation()
     setIsResizing(true)
     if (viewportFrameRef.current) {
-      const rect = viewportFrameRef.current.getBoundingClientRect()
+      viewportFrameRef.current.getBoundingClientRect()
       resizeRef.current = {
         startX: e.clientX,
         startY: e.clientY,

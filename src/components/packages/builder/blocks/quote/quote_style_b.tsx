@@ -3,14 +3,18 @@ import React from 'react'
 import { Mail, Phone, ArrowRight, Check } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 
+import type { ThemeColors } from '../../types'
+
 interface QuoteStyleBProps {
   content: {
     title?: string
     subtitle?: string
     description?: string
     backgroundImage?: string
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     formFields?: any
   }
+  themeColors?: ThemeColors
 }
 
 function Stat({ value, label }: { value: string; label: string }) {
@@ -28,7 +32,8 @@ export default function QuoteStyleB({ content }: QuoteStyleBProps) {
     subtitle = 'Fast, friendly quotes',
     description = 'Fast, friendly quotes for steel fabrication, architectural steelwork, and on-site welding.',
     backgroundImage = 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?q=80&w=1500',
-    formFields = {}
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    formFields: _formFields = {}
   } = content
 
   return (
@@ -38,6 +43,7 @@ export default function QuoteStyleB({ content }: QuoteStyleBProps) {
         {/* Image */}
         <div className="relative">
           {backgroundImage && (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={backgroundImage}
               alt="Steelwork background"

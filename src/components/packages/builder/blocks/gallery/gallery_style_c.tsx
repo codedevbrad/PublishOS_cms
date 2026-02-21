@@ -2,12 +2,15 @@
 import React, { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
+import type { ThemeColors } from '../../types'
+
 interface GalleryStyleCProps {
   content: {
     title?: string
     description?: string
     images?: Array<{ id: string; src: string; alt: string; caption?: string }>
   }
+  themeColors?: ThemeColors
 }
 
 export default function GalleryStyleC({ content }: GalleryStyleCProps) {
@@ -60,6 +63,7 @@ export default function GalleryStyleC({ content }: GalleryStyleCProps) {
         {/* Main Carousel */}
         <div className="relative mb-8">
           <div className="relative h-[500px] md:h-[600px] rounded-lg overflow-hidden bg-gray-100">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={images[currentIndex].src}
               alt={images[currentIndex].alt}
@@ -115,6 +119,7 @@ export default function GalleryStyleC({ content }: GalleryStyleCProps) {
                     : 'border-transparent opacity-60 hover:opacity-100'
                 }`}
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={image.src}
                   alt={image.alt}

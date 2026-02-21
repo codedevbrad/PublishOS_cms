@@ -56,11 +56,13 @@ interface HeaderBlockEditorProps {
     textColor?: string // Can be a color key (e.g., 'foreground') or hex value
     height?: string
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onUpdate: (content: any) => void
   themeColors?: ThemeColors
 }
 
 export const HeaderBlockEditor: React.FC<HeaderBlockEditorProps> = ({ content, onUpdate, themeColors }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleInputChange = (field: string, value: any) => {
     onUpdate({ ...content, [field]: value })
   }

@@ -11,31 +11,14 @@ import {
   DrawerTrigger,
   DrawerClose,
 } from '@/src/components/ui/drawer'
-
-interface ThemeColors {
-  primary: string
-  secondary: string
-  accent: string
-  background: string
-  foreground: string
-  muted: string
-  mutedForeground: string
-  border: string
-  [key: string]: string
-}
-
-interface GlobalBlock {
-  id: string
-  type: 'header' | 'nav'
-  content: any
-  isActive: boolean
-}
+import type { GlobalBlock, ThemeColors } from '../types'
 
 interface GlobalEditorDrawerProps {
   block: GlobalBlock
   title: string
   isOpen: boolean
   onOpenChange: (open: boolean) => void
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onUpdate: (content: any) => void
   onClose: () => void
   triggerClassName?: string

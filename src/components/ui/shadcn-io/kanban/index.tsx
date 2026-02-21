@@ -164,10 +164,12 @@ export const KanbanCards = <T extends KanbanItemProps = KanbanItemProps>({
   return (
     <ScrollArea className="overflow-hidden">
       <SortableContext items={items}>
+        {/* eslint-disable @typescript-eslint/no-explicit-any */}
         <div
           className={cn('flex flex-grow flex-col gap-2 p-2', className)}
           {...(props as any)}
         >
+        {/* eslint-enable @typescript-eslint/no-explicit-any */}
           {filteredData.map(children)}
         </div>
       </SortableContext>
@@ -179,6 +181,7 @@ export const KanbanCards = <T extends KanbanItemProps = KanbanItemProps>({
 export type KanbanHeaderProps = HTMLAttributes<HTMLDivElement>;
 
 export const KanbanHeader = ({ className, ...props }: KanbanHeaderProps) => (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   <div className={cn('m-0 p-2 font-semibold text-sm', className)} {...(props as any)} />
 );
 
@@ -308,6 +311,7 @@ export const KanbanProvider = <
 
   return (
     <KanbanContext.Provider value={{ columns, data, activeCardId }}>
+      {/* eslint-disable @typescript-eslint/no-explicit-any */}
       <DndContext
         accessibility={{ announcements }}
         collisionDetection={closestCenter}
@@ -317,6 +321,7 @@ export const KanbanProvider = <
         sensors={sensors}
         {...(props as any)}
       >
+      {/* eslint-enable @typescript-eslint/no-explicit-any */}
         <div
           className={cn(
             'grid size-full auto-cols-fr grid-flow-col gap-4',

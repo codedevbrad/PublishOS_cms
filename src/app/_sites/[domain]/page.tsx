@@ -20,11 +20,19 @@ export default async function Page({
     return <div>Site not found</div>;
   }
 
+  const activeCreation = await prisma.websiteCreation.findFirst({
+    where: { websiteId: site.id, isActive: true }
+  });
+
+  if (!activeCreation) {
+    return <div>Site not found</div>;
+  }
+
   const slugPath = params.slug?.join("/") ?? "";
 
-  const page = await db.page.findFirst({
+  const page = await prisma.page.findFirst({
     where: {
-      siteId: site.id,
+      websiteCreationId: activeCreation.id,
       slug: slugPath
     }
   });

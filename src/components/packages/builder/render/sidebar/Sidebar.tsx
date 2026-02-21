@@ -17,41 +17,7 @@ import {
 import { ThemeEditor } from './ThemeEditor'
 import { GlobalEditorDrawer } from '../../_components/GlobalEditorDrawer'
 import { Save, X } from 'lucide-react'
-
-interface ContentBlock {
-  id: string
-  type: 'hero' | 'about' | 'image' | 'faq' | 'contact' | 'team' | 'quote' | 'gallery'
-  content: any
-  order: number
-  variant?: string
-}
-
-interface GlobalBlock {
-  id: string
-  type: 'header' | 'nav'
-  content: any
-  isActive: boolean
-}
-
-interface ThemeColors {
-  primary: string
-  secondary: string
-  accent: string
-  background: string
-  foreground: string
-  muted: string
-  mutedForeground: string
-  border: string
-  [key: string]: string
-}
-
-interface Page {
-  id: string
-  name: string
-  slug: string
-  blocks: ContentBlock[]
-  isActive: boolean
-}
+import type { GlobalBlock, Page, ThemeColors } from '../../types'
 
 interface SidebarProps {
   globalBlocks: GlobalBlock[]
@@ -62,6 +28,7 @@ interface SidebarProps {
   openGlobalEditorId: string | null
   themeColors: ThemeColors
   onAddGlobalBlock: (blockType: string) => void
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onUpdateGlobalBlock: (blockId: string, content: any) => void
   onDeleteGlobalBlock: (blockId: string) => void
   onSetActivePageId: (pageId: string) => void
@@ -252,6 +219,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="space-y-2">
               {pages.map((page) => {
                 const navBlock = globalBlocks.find((b) => b.type === 'nav' && b.isActive)
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const isInNav = navBlock?.content?.autoSync || navBlock?.content?.items?.some((item: any) => item.pageId === page.id)
 
                 return (

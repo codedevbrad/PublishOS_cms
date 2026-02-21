@@ -11,31 +11,13 @@ import {
   DrawerTrigger,
   DrawerClose,
 } from '@/src/components/ui/drawer'
-
-interface ContentBlock {
-  id: string
-  type: 'hero' | 'about' | 'image' | 'faq' | 'contact' | 'team' | 'quote' | 'gallery' | 'services'
-  content: any
-  order: number
-  variant?: string
-}
-
-interface ThemeColors {
-  primary: string
-  secondary: string
-  accent: string
-  background: string
-  foreground: string
-  muted: string
-  mutedForeground: string
-  border: string
-  [key: string]: string
-}
+import type { ContentBlock, ThemeColors } from '../types'
 
 interface BlockEditorDrawerProps {
   block: ContentBlock
   isOpen: boolean
   onOpenChange: (open: boolean) => void
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onUpdate: (content: any) => void
   onClose: () => void
   themeColors?: ThemeColors

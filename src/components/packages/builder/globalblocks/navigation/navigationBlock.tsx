@@ -50,6 +50,7 @@ export const NavigationBlock: React.FC<NavigationBlockProps> = ({ content, theme
       style={{ backgroundColor, color: textColor }}
     >
       <ul className={`flex space-x-6 ${content.alignment === 'center' ? 'justify-center' : content.alignment === 'right' ? 'justify-end' : 'justify-start'}`}>
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         {(content.items || []).map((item: any, index: number) => (
           <li key={index}>
             <button
@@ -99,26 +100,33 @@ interface NavigationBlockEditorProps {
     alignment?: 'left' | 'center' | 'right'
     autoSync?: boolean
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onUpdate: (content: any) => void
   themeColors?: ThemeColors
 }
 
 export const NavigationBlockEditor: React.FC<NavigationBlockEditorProps> = ({ content, onUpdate, themeColors }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleInputChange = (field: string, value: any) => {
     onUpdate({ ...content, [field]: value })
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleArrayChange = (field: string, index: number, subField: string, value: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const newArray = [...(content[field as keyof typeof content] as any[])]
     newArray[index] = { ...newArray[index], [subField]: value }
     onUpdate({ ...content, [field]: newArray })
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const addArrayItem = (field: string, defaultItem: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onUpdate({ ...content, [field]: [...(content[field as keyof typeof content] as any[]), defaultItem] })
   }
 
   const removeArrayItem = (field: string, index: number) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const newArray = (content[field as keyof typeof content] as any[]).filter((_: any, i: number) => i !== index)
     onUpdate({ ...content, [field]: newArray })
   }
@@ -182,6 +190,7 @@ export const NavigationBlockEditor: React.FC<NavigationBlockEditorProps> = ({ co
       {!content.autoSync && (
         <div>
           <label className="block text-sm font-medium mb-2">Navigation Items</label>
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           {(content.items || []).map((item: any, index: number) => (
             <div key={index} className="border p-3 rounded-md space-y-2 mb-2">
               <input

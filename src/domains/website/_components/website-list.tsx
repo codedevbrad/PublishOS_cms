@@ -7,7 +7,6 @@ import { CreateWebsiteForm } from "./create-website-form";
 import { EditWebsiteForm } from "./edit-website-form";
 import { deleteWebsite, toggleWebsiteActive } from "../db";
 import { useTransition } from "react";
-import { mutate } from "swr";
 import Link from "next/link";
 import { Edit, Trash2, Power, PowerOff, ExternalLink } from "lucide-react";
 

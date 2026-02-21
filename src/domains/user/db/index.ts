@@ -2,8 +2,7 @@
 
 import { prisma } from "@/src/lib/db";
 import bcrypt from "bcryptjs";
-import { signIn, signOut, auth } from "@/auth";
-import { redirect } from "next/navigation";
+import { signIn, auth } from "@/auth";
 
 export type ActionResult<T = void> =
   | { success: true; data?: T }
@@ -38,7 +37,7 @@ export async function signUpAction(
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user without organisation (will be created in step 2)
-    const newUser = await prisma.user.create({
+    await prisma.user.create({
       data: {
         username,
         password: hashedPassword,

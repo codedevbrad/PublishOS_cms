@@ -17,38 +17,16 @@ const ServicesListBlock = dynamic(() => import('./services/ServicesListBlock'), 
 import { HeaderBlock, HeaderBlockEditor } from '../globalblocks/header/headerBlock';
 import { NavigationBlock, NavigationBlockEditor } from '../globalblocks/navigation/navigationBlock';
 
+import type { ContentBlock, GlobalBlock, Page, ThemeColors } from '../types';
+
 interface ViewportConfig {
   name: string;
   width: number;
   height: number;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
 type ViewportType = 'desktop' | 'tablet' | 'mobile';
-
-// Types for our page builder
-interface ContentBlock {
-  id: string;
-  type: 'hero' | 'about' | 'image' | 'faq' | 'contact' | 'team' | 'quote' | 'gallery' | 'services';
-  content: any;
-  order: number;
-  variant?: string; // For multiple versions/styles of the same block type
-}
-
-interface GlobalBlock {
-  id: string;
-  type: 'header' | 'nav';
-  content: any;
-  isActive: boolean;
-}
-
-interface Page {
-  id: string;
-  name: string;
-  slug: string;
-  blocks: ContentBlock[];
-  isActive: boolean;
-}
 
 // Block type definitions
 export const BLOCK_TYPES = [
@@ -237,23 +215,11 @@ export const getDefaultBlockContent = (type: string, variant?: string, pages?: P
   }
 };
 
-// Theme colors interface
-interface ThemeColors {
-  primary: string;
-  secondary: string;
-  accent: string;
-  background: string;
-  foreground: string;
-  muted: string;
-  mutedForeground: string;
-  border: string;
-  [key: string]: string;
-}
-
 // Block renderer components
 export const BlockRenderer: React.FC<{ 
   block: ContentBlock | GlobalBlock; 
   isEditing: boolean; 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onUpdate: (content: any) => void;
   themeColors?: ThemeColors;
 }> = ({ 
@@ -353,10 +319,12 @@ export const BlockRenderer: React.FC<{
           <div className="max-w-6xl mx-auto">
             <h2 className="text-3xl font-bold mb-12 text-center">{content.title}</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
               {content.members.map((member: any, index: number) => (
                 <div key={index} className="text-center">
                   <div className="w-32 h-32 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
                     {member.image ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
                       <img src={member.image} alt={member.name} className="w-full h-full object-cover rounded-full" />
                     ) : (
                       <Users className="w-12 h-12 text-gray-400" />
@@ -378,27 +346,32 @@ export const BlockRenderer: React.FC<{
 };
 
 // Block editor component for inline editing
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const BlockEditor: React.FC<{ type: string; content: any; onUpdate: (content: any) => void; themeColors?: ThemeColors }> = ({ 
   type, 
   content, 
   onUpdate,
   themeColors
 }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleInputChange = (field: string, value: any) => {
     onUpdate({ ...content, [field]: value });
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleArrayChange = (field: string, index: number, subField: string, value: any) => {
     const newArray = [...content[field]];
     newArray[index] = { ...newArray[index], [subField]: value };
     onUpdate({ ...content, [field]: newArray });
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const addArrayItem = (field: string, defaultItem: any) => {
     onUpdate({ ...content, [field]: [...content[field], defaultItem] });
   };
 
   const removeArrayItem = (field: string, index: number) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const newArray = content[field].filter((_: any, i: number) => i !== index);
     onUpdate({ ...content, [field]: newArray });
   };
@@ -617,6 +590,7 @@ const BlockEditor: React.FC<{ type: string; content: any; onUpdate: (content: an
           </div>
           <div>
             <label className="block text-sm font-medium mb-2">FAQ Items</label>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {content.items.map((item: any, index: number) => (
               <div key={index} className="border p-3 rounded-md space-y-2 mb-2">
                 <input
@@ -765,6 +739,7 @@ const BlockEditor: React.FC<{ type: string; content: any; onUpdate: (content: an
           </div>
           <div>
             <label className="block text-sm font-medium mb-2">Team Members</label>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {content.members.map((member: any, index: number) => (
               <div key={index} className="border p-3 rounded-md space-y-2 mb-2">
                 <input
@@ -860,10 +835,12 @@ const BlockEditor: React.FC<{ type: string; content: any; onUpdate: (content: an
           </div>
           <div>
             <label className="block text-sm font-medium mb-2">Images</label>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {(content.images || []).map((image: any, index: number) => (
               <div key={image.id || index} className="border p-3 rounded-md space-y-2 mb-2">
                 <div className="flex gap-2">
                   {image.src && (
+                    /* eslint-disable-next-line @next/next/no-img-element */
                     <img src={image.src} alt={image.alt || ''} className="w-20 h-20 object-cover rounded" />
                   )}
                   <div className="flex-1 space-y-2">
@@ -972,10 +949,12 @@ const BlockEditor: React.FC<{ type: string; content: any; onUpdate: (content: an
           </div>
           <div>
             <label className="block text-sm font-medium mb-2">Services</label>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {(content.services || []).map((service: any, index: number) => (
               <div key={service.id || index} className="border p-3 rounded-md space-y-2 mb-2">
                 <div className="flex gap-2">
                   {service.image && (
+                    /* eslint-disable-next-line @next/next/no-img-element */
                     <img src={service.image} alt={service.title || ''} className="w-20 h-20 object-cover rounded" />
                   )}
                   <div className="flex-1 space-y-2">

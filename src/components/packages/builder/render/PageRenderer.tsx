@@ -4,41 +4,7 @@ import { Trash2, GripVertical, Layout } from 'lucide-react'
 import { BlockRenderer } from '../blocks/blocks'
 import { BlockEditorDrawer } from '../_components/BlockEditorDrawer'
 import { GlobalEditorDrawer } from '../_components/GlobalEditorDrawer'
-
-interface ContentBlock {
-  id: string
-  type: 'hero' | 'about' | 'image' | 'faq' | 'contact' | 'team' | 'quote' | 'gallery' | 'services'
-  content: any
-  order: number
-  variant?: string
-}
-
-interface GlobalBlock {
-  id: string
-  type: 'header' | 'nav'
-  content: any
-  isActive: boolean
-}
-
-interface Page {
-  id: string
-  name: string
-  slug: string
-  blocks: ContentBlock[]
-  isActive: boolean
-}
-
-interface ThemeColors {
-  primary: string
-  secondary: string
-  accent: string
-  background: string
-  foreground: string
-  muted: string
-  mutedForeground: string
-  border: string
-  [key: string]: string
-}
+import type { GlobalBlock, Page, ThemeColors } from '../types'
 
 interface PageRendererProps {
   activePage: Page | undefined
@@ -49,8 +15,10 @@ interface PageRendererProps {
   dragOverIndex: number | null
   openBlockEditorId: string | null
   openGlobalEditorId: string | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onUpdateBlock: (blockId: string, content: any) => void
   onDeleteBlock: (blockId: string) => void
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onUpdateGlobalBlock: (blockId: string, content: any) => void
   onDeleteGlobalBlock: (blockId: string) => void
   onSetOpenBlockEditorId: (id: string | null) => void

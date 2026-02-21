@@ -1,5 +1,7 @@
 'use client'
-import React, { useState } from 'react'
+import React from 'react'
+
+import type { ThemeColors } from '../../types'
 
 interface GalleryStyleBProps {
   content: {
@@ -7,6 +9,7 @@ interface GalleryStyleBProps {
     description?: string
     images?: Array<{ id: string; src: string; alt: string; caption?: string }>
   }
+  themeColors?: ThemeColors
 }
 
 export default function GalleryStyleB({ content }: GalleryStyleBProps) {
@@ -52,6 +55,7 @@ export default function GalleryStyleB({ content }: GalleryStyleBProps) {
                 key={image.id}
                 className={`group relative overflow-hidden rounded-lg bg-gray-100 cursor-pointer ${getMasonryClass(index)}`}
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={image.src}
                   alt={image.alt}

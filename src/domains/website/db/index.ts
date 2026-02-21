@@ -646,7 +646,7 @@ export async function createWebsiteCreation(
             ? activeCreation.pages.map((p) => ({
                 title: p.title,
                 slug: p.slug,
-                blocksJson: p.blocksJson,
+                blocksJson: p.blocksJson as Prisma.InputJsonValue ?? [],
               }))
             : [{ title: "Home", slug: "home", blocksJson: [] }],
         },

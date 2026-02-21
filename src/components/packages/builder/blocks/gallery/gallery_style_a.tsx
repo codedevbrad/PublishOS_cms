@@ -66,6 +66,7 @@ export default function GalleryStyleA({ content, themeColors }: GalleryStyleAPro
                 key={image.id}
                 className="group relative overflow-hidden rounded-lg bg-gray-100 aspect-square cursor-pointer"
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={image.src}
                   alt={image.alt}

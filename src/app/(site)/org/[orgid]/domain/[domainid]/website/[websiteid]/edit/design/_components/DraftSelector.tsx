@@ -5,7 +5,6 @@ import { Button } from '@/src/components/ui/button'
 import { Input } from '@/src/components/ui/input'
 import { Plus, Check, Trash2, Edit2, X, Save } from 'lucide-react'
 import { 
-  getWebsiteCreations, 
   createWebsiteCreation, 
   setActiveWebsiteCreation,
   deleteWebsiteCreation,
@@ -55,7 +54,7 @@ export function DraftSelector({
           router.refresh()
           onCreationChange(result.data.id)
         } else {
-          alert(result.error || 'Failed to create draft')
+          alert('error' in result ? result.error : 'Failed to create draft')
         }
       })
     } else {

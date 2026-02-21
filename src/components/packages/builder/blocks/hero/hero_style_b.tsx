@@ -3,6 +3,8 @@ import React from 'react'
 import { ArrowRight } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 
+import type { ThemeColors } from '../../types'
+
 interface HeroStyleBProps {
   content: {
     title?: string
@@ -11,6 +13,7 @@ interface HeroStyleBProps {
     buttonText?: string
     backgroundImage?: string
   }
+  themeColors?: ThemeColors
 }
 
 function Stat({ value, label }: { value: string; label: string }) {
@@ -36,6 +39,7 @@ export default function HeroStyleB({ content }: HeroStyleBProps) {
       {/* Image */}
       <div className="relative">
         {backgroundImage && (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={backgroundImage}
             alt="Hero background"

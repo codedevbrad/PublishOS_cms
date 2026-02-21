@@ -54,6 +54,7 @@ export default function HeroStyleA({ content, themeColors }: HeroStyleAProps) {
       {/* Background Image */}
       {backgroundImage && (
         <div className="absolute inset-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={backgroundImage}
             alt="Hero background"

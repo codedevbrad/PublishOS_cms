@@ -21,50 +21,8 @@ import ViewportSandbox, { type ViewportConfig as ViewportSandboxConfig } from '.
 import { Sidebar } from './render/sidebar/Sidebar'
 import { PageRenderer } from './render/PageRenderer'
 import { BlockChooser } from './render/BlockVariant'
+import type { ContentBlock, GlobalBlock, Page, ThemeColors, SiteData } from './types'
 
-// Types for our page builder
-interface ContentBlock {
-  id: string
-  type: 'hero' | 'about' | 'image' | 'faq' | 'contact' | 'team' | 'quote' | 'gallery' | 'services'
-  content: any
-  order: number
-  variant?: string
-}
-
-interface GlobalBlock {
-  id: string
-  type: 'header' | 'nav'
-  content: any
-  isActive: boolean
-}
-
-interface Page {
-  id: string
-  name: string
-  slug: string
-  blocks: ContentBlock[]
-  isActive: boolean
-}
-
-interface ThemeColors {
-  primary: string
-  secondary: string
-  accent: string
-  background: string
-  foreground: string
-  muted: string
-  mutedForeground: string
-  border: string
-  [key: string]: string // Allow custom color keys
-}
-
-interface SiteData {
-  pages: Page[]
-  globalBlocks: GlobalBlock[]
-  themeColors?: ThemeColors
-}
-
-// Viewport types...
 type ViewportType = 'desktop' | 'tablet' | 'mobile'
 
 interface WebsiteBuilderProps {
@@ -73,6 +31,7 @@ interface WebsiteBuilderProps {
   initialSiteData?: SiteData
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websiteCreationId, initialSiteData }) => {
   // Initialize state from initialSiteData or defaults
   const [pages, setPages] = useState<Page[]>(
@@ -141,10 +100,10 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
       pages: pages.map((p) => ({
         title: p.name,
         slug: p.slug,
-        blocksJson: p.blocks,
+        blocksJson: p.blocks as unknown as import('@prisma/client').Prisma.InputJsonValue,
       })),
-      globalBlocks,
-      themeColors,
+      globalBlocks: globalBlocks as unknown as import('@prisma/client').Prisma.InputJsonValue,
+      themeColors: themeColors as unknown as import('@prisma/client').Prisma.InputJsonValue,
     }
 
     startSaving(async () => {
@@ -214,7 +173,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
         // Adding new block from sidebar
         const newBlock: ContentBlock = {
           id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          type: dragData.blockType as any,
+          type: dragData.blockType as ContentBlock['type'],
           content: getDefaultBlockContent(dragData.blockType),
           order: targetIndex,
         }
@@ -259,6 +218,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
     setOpenBlockEditorId(null)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateBlock = (blockId: string, content: any) => {
     setPages((prev) =>
       prev.map((page) =>
@@ -291,6 +251,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const updatePageName = (pageId: string, newName: string) => {
     setPages((prev) =>
       prev.map((page) =>
@@ -306,7 +267,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
     } else {
       const newBlock: GlobalBlock = {
         id: `global-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        type: blockType as any,
+        type: blockType as GlobalBlock['type'],
         content: getDefaultBlockContent(blockType, undefined, pages),
         isActive: true,
       }
@@ -314,6 +275,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateGlobalBlock = (blockId: string, content: any) => {
     setGlobalBlocks((prev) => prev.map((block) => (block.id === blockId ? { ...block, content } : block)))
   }
@@ -367,6 +329,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
   }, [currentViewport])
 
   // Viewport change handler
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleViewportChange = (key: string, cfg: { width: number; height: number; name: string; icon: any }) => {
     setCurrentViewport(key as ViewportType)
     setCustomWidth(cfg.width)
@@ -394,7 +357,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
 
     const newBlock: ContentBlock = {
       id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      type: blockType as any,
+      type: blockType as ContentBlock['type'],
       content: getDefaultBlockContent(blockType, variant),
       order: insertIndex,
       variant: variant || undefined,

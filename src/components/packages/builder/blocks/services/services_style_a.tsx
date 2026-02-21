@@ -77,6 +77,7 @@ export default function ServicesStyleA({ content, themeColors }: ServicesStyleAP
               >
                 {service.image && (
                   <div className="relative h-48 overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={service.image}
                       alt={service.title}

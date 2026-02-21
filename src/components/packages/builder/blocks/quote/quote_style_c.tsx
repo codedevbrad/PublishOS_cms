@@ -3,13 +3,17 @@ import React from 'react'
 import { Mail, Phone, ArrowRight, Check } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 
+import type { ThemeColors } from '../../types'
+
 interface QuoteStyleCProps {
   content: {
     title?: string
     subtitle?: string
     description?: string
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     formFields?: any
   }
+  themeColors?: ThemeColors
 }
 
 export default function QuoteStyleC({ content }: QuoteStyleCProps) {
@@ -17,7 +21,8 @@ export default function QuoteStyleC({ content }: QuoteStyleCProps) {
     title = 'Get Your Quote',
     subtitle = 'Fast, friendly quotes',
     description = 'Fast, friendly quotes for steel fabrication, architectural steelwork, and on-site welding.',
-    formFields = {}
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    formFields: _formFields = {}
   } = content
 
   return (

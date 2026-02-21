@@ -57,6 +57,7 @@ export default async function WebsiteEditPage({ params, searchParams }: WebsiteE
     activeCreation = creations[0];
   }
 
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   const initialSiteData: Parameters<typeof WebsiteBuilder>[0]["initialSiteData"] = {
     pages: activeCreation.pages.map((p) => ({
       id: p.id,
@@ -68,6 +69,7 @@ export default async function WebsiteEditPage({ params, searchParams }: WebsiteE
     globalBlocks: (activeCreation.globalBlocks as any[]) ?? [],
     themeColors: (activeCreation.themeColors as any) ?? undefined,
   };
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   if (initialSiteData.pages.length > 0) {
     initialSiteData.pages[0].isActive = true;

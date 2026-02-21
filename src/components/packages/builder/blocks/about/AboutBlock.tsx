@@ -50,6 +50,7 @@ export default function AboutBlock({ content, themeColors }: AboutBlockProps) {
         <p className="text-lg text-center leading-relaxed" style={{ color: textColor || undefined }}>{aboutContent}</p>
         {image && (
           <div className="mt-8 flex justify-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={image} alt={title} className="max-w-full h-auto rounded-lg" />
           </div>
         )}

@@ -10,12 +10,15 @@ interface Service {
   link?: string
 }
 
+import type { ThemeColors } from '../../types'
+
 interface ServicesStyleBProps {
   content: {
     title?: string
     description?: string
     services?: Service[]
   }
+  themeColors?: ThemeColors
 }
 
 export default function ServicesStyleB({ content }: ServicesStyleBProps) {
@@ -52,6 +55,7 @@ export default function ServicesStyleB({ content }: ServicesStyleBProps) {
               >
                 {service.image && (
                   <div className="md:w-1/3 relative h-64 md:h-auto overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={service.image}
                       alt={service.title}

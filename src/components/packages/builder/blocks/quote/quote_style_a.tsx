@@ -21,6 +21,7 @@ interface QuoteStyleAProps {
     subtitle?: string
     description?: string
     backgroundImage?: string
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     formFields?: any
     backgroundColor?: string
     textColor?: string
@@ -43,7 +44,8 @@ export default function QuoteStyleA({ content, themeColors }: QuoteStyleAProps) 
     subtitle = 'Fast, friendly quotes for your project',
     description = 'Fast, friendly quotes for steel fabrication, architectural steelwork, and on-site welding.',
     backgroundImage = 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?q=80&w=1500',
-    formFields = {}
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    formFields: _formFields = {}
   } = content
 
   const backgroundColor = resolveColor(content.backgroundColor, themeColors)
@@ -55,6 +57,7 @@ export default function QuoteStyleA({ content, themeColors }: QuoteStyleAProps) 
       <section className="relative w-full min-h-[50vh] flex items-center px-8 py-24 overflow-hidden">
         {backgroundImage && (
           <div className="absolute inset-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={backgroundImage}
               alt="Steelwork background"

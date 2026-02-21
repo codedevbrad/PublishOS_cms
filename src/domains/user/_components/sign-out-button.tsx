@@ -1,8 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
 import { Button } from "@/src/components/ui/button"; 
-import { mutate } from "swr";
 import { signOut } from "next-auth/react";
 
 export function SignOutButton() {

@@ -7,7 +7,6 @@ import { CreateDomainForm } from "./create-domain-form";
 import { EditDomainForm } from "./edit-domain-form";
 import { deleteDomain } from "../db";
 import { useTransition } from "react";
-import { mutate } from "swr";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 
