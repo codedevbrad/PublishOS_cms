@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { headers } from "next/headers";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -14,26 +13,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PublishOS – build → publish → track",
-  description: "PublishOS is a platform for building and publishing websites.",
+  title: "PublishOS",
+  description: "Built with PublishOS",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const host = (await headers()).get("host");
   return (
-    <html lang="en" className="h-full">
+    <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased h-full`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-            {/* Content fills remaining space */}
-            <main>
-              <div> { host } </div>
-              {children}
-            </main>
+        {children}
       </body>
     </html>
   );
