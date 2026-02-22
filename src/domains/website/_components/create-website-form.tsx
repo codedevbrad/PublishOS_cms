@@ -13,6 +13,7 @@ import {
 import { createWebsite } from "../db";
 
 const TLD_OPTIONS = [
+  { value: "none", label: "None" },
   { value: ".co.uk", label: ".co.uk" },
   { value: ".com", label: ".com" },
 ];
@@ -51,7 +52,7 @@ export function CreateWebsiteForm({
       return;
     }
 
-    const fullDomainUrl = `${domainName.trim()}${tld}`;
+    const fullDomainUrl = `${domainName.trim()}${tld === "none" ? "" : tld}`;
 
     startTransition(async () => {
       const result = await createWebsite(
