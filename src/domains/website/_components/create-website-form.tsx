@@ -3,7 +3,19 @@
 import { useState, useTransition } from "react";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/src/components/ui/select";
 import { createWebsite } from "../db";
+
+const TLD_OPTIONS = [
+  { value: ".co.uk", label: ".co.uk" },
+  { value: ".com", label: ".com" },
+];
 
 interface CreateWebsiteFormProps {
   domainId: string;
@@ -21,6 +33,7 @@ export function CreateWebsiteForm({
 }: CreateWebsiteFormProps) {
   const [name, setName] = useState("");
   const [domainName, setDomainName] = useState("");
+  const [tld, setTld] = useState(".co.uk");
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
 
@@ -38,11 +51,13 @@ export function CreateWebsiteForm({
       return;
     }
 
+    const fullDomainUrl = `${domainName.trim()}${tld}`;
+
     startTransition(async () => {
       const result = await createWebsite(
         domainId,
         name.trim(),
-        domainName.trim()
+        fullDomainUrl
       );
 
       if (!result.success) {
@@ -73,7 +88,7 @@ export function CreateWebsiteForm({
       <div className="space-y-2">
         <label className="text-sm font-medium">Domain *</label>
         <div className="flex items-center gap-1">
-          <span className="text-sm text-muted-foreground">www.</span>
+          <span className="text-sm text-muted-foreground">https://</span>
           <Input
             type="text"
             value={domainName}
@@ -83,7 +98,18 @@ export function CreateWebsiteForm({
             placeholder="example"
             className="flex-1"
           />
-          <span className="text-sm text-muted-foreground">.co.uk</span>
+          <Select value={tld} onValueChange={setTld} disabled={isPending}>
+            <SelectTrigger className="w-[110px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {TLD_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
       {error && (

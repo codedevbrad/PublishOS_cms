@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BreadcrumbNav, type BreadcrumbItem } from "@/src/components/ui/breadcrumb";
+import { Skeleton } from "@/src/components/ui/skeleton";
 import { getOrganisation } from "@/src/domains/organisation/db";
 import { getDomain } from "@/src/domains/domain/db";
 import { getWebsite } from "@/src/domains/website/db";
@@ -115,7 +116,16 @@ export function BreadcrumbView({ orgid }: BreadcrumbViewProps) {
   }, [pathname, orgid]);
 
   if (isLoading || !breadcrumbData) {
-    return null;
+    return (
+      <div className="flex flex-row gap-4 items-center">
+        <Skeleton className="h-9 w-16 rounded-md" />
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
+          <Skeleton className="h-4 w-10" />
+          <Skeleton className="h-3.5 w-3.5 rounded-full" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+      </div>
+    );
   }
 
   // Build breadcrumb items based on the current route

@@ -3,7 +3,31 @@
 import { useState, useTransition } from "react";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/src/components/ui/select";
 import { updateWebsite } from "../db";
+
+const TLD_OPTIONS = [
+  { value: ".co.uk", label: ".co.uk" },
+  { value: ".com", label: ".com" },
+];
+
+function parseDomainUrl(domainUrl: string): { name: string; tld: string } {
+  for (const option of TLD_OPTIONS) {
+    if (domainUrl.endsWith(option.value)) {
+      return {
+        name: domainUrl.slice(0, -option.value.length),
+        tld: option.value,
+      };
+    }
+  }
+  return { name: domainUrl, tld: ".co.uk" };
+}
 
 interface EditWebsiteFormProps {
   websiteId: string;
@@ -20,8 +44,10 @@ export function EditWebsiteForm({
   onSuccess,
   onCancel,
 }: EditWebsiteFormProps) {
+  const parsed = parseDomainUrl(initialDomainUrl);
   const [name, setName] = useState(initialName);
-  const [domainName, setDomainName] = useState(initialDomainUrl);
+  const [domainName, setDomainName] = useState(parsed.name);
+  const [tld, setTld] = useState(parsed.tld);
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
 
@@ -39,11 +65,13 @@ export function EditWebsiteForm({
       return;
     }
 
+    const fullDomainUrl = `${domainName.trim()}${tld}`;
+
     startTransition(async () => {
       const result = await updateWebsite(
         websiteId,
         name.trim(),
-        domainName.trim()
+        fullDomainUrl
       );
 
       if (!result.success) {
@@ -72,7 +100,7 @@ export function EditWebsiteForm({
       <div className="space-y-2">
         <label className="text-sm font-medium">Domain *</label>
         <div className="flex items-center gap-1">
-          <span className="text-sm text-muted-foreground">www.</span>
+          <span className="text-sm text-muted-foreground">https://</span>
           <Input
             type="text"
             value={domainName}
@@ -82,7 +110,18 @@ export function EditWebsiteForm({
             placeholder="example"
             className="flex-1"
           />
-          <span className="text-sm text-muted-foreground">.co.uk</span>
+          <Select value={tld} onValueChange={setTld} disabled={isPending}>
+            <SelectTrigger className="w-[110px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {TLD_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
       {error && (

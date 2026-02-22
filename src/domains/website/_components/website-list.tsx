@@ -135,7 +135,7 @@ export function WebsiteList({ domainId, organisationId }: WebsiteListProps) {
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground mt-1">
-                    www.{website.domainUrl}.co.uk
+                    https://{website.domainUrl}
                   </p>
                   <p className="text-xs text-muted-foreground mt-2">
                     Created {new Date(website.createdAt).toLocaleDateString()}
