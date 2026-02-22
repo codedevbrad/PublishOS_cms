@@ -538,6 +538,37 @@ export async function createOrUpdatePostHogConfig(
   }
 }
 
+export async function getWebsiteByHost(host: string) {
+  try {
+    const website = await prisma.website.findFirst({
+      where: { domainUrl: host, isActive: true },
+      include: {
+        sites: {
+          where: { isActive: true },
+          take: 1,
+          include: { pages: true },
+        },
+      },
+    });
+
+    if (!website) return null;
+
+    const activeCreation = website.sites[0];
+    if (!activeCreation) return null;
+
+    return {
+      website,
+      creation: activeCreation,
+      pages: activeCreation.pages,
+      globalBlocks: activeCreation.globalBlocks,
+      themeColors: activeCreation.themeColors,
+    };
+  } catch (error) {
+    console.error("Error fetching website by host:", error);
+    return null;
+  }
+}
+
 // WebsiteCreation (draft) management functions
 
 export async function getWebsiteCreations(websiteId: string) {

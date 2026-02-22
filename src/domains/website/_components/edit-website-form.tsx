@@ -13,20 +13,21 @@ import {
 import { updateWebsite } from "../db";
 
 const TLD_OPTIONS = [
+  { value: "none", label: "None" },
   { value: ".co.uk", label: ".co.uk" },
   { value: ".com", label: ".com" },
 ];
 
 function parseDomainUrl(domainUrl: string): { name: string; tld: string } {
   for (const option of TLD_OPTIONS) {
-    if (domainUrl.endsWith(option.value)) {
+    if (option.value !== "none" && domainUrl.endsWith(option.value)) {
       return {
         name: domainUrl.slice(0, -option.value.length),
         tld: option.value,
       };
     }
   }
-  return { name: domainUrl, tld: ".co.uk" };
+  return { name: domainUrl, tld: "none" };
 }
 
 interface EditWebsiteFormProps {
@@ -65,7 +66,7 @@ export function EditWebsiteForm({
       return;
     }
 
-    const fullDomainUrl = `${domainName.trim()}${tld}`;
+    const fullDomainUrl = `${domainName.trim()}${tld === "none" ? "" : tld}`;
 
     startTransition(async () => {
       const result = await updateWebsite(

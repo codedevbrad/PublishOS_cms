@@ -1,5 +1,7 @@
 'use client'
 import React from 'react'
+import Link from 'next/link'
+import { useIsSiteMode } from '../../render/SiteModeContext'
 import { ColorPaletteSelector } from '../../_components/ColorPaletteSelector'
 
 interface ThemeColors {
@@ -40,9 +42,29 @@ const resolveColor = (color: string | undefined, themeColors?: ThemeColors): str
 }
 
 export const NavigationBlock: React.FC<NavigationBlockProps> = ({ content, themeColors }) => {
+  const isSiteMode = useIsSiteMode()
   const backgroundColor = resolveColor(content.backgroundColor, themeColors)
   const textColor = resolveColor(content.textColor, themeColors)
   const hoverColor = resolveColor(content.hoverColor, themeColors)
+
+  const siteBasePath = process.env.NODE_ENV === 'development' ? '/site' : ''
+
+  const resolveHref = (link: string | undefined) => {
+    const path = link || '/'
+    return `${siteBasePath}${path}`
+  }
+
+  const itemClassName = (hasPageId: boolean) =>
+    `hover:opacity-75 transition-opacity ${hasPageId ? 'font-medium' : ''}`
+
+  const hoverHandlers = {
+    onMouseEnter: (e: React.MouseEvent<HTMLElement>) => {
+      if (hoverColor) e.currentTarget.style.color = hoverColor
+    },
+    onMouseLeave: (e: React.MouseEvent<HTMLElement>) => {
+      if (textColor) e.currentTarget.style.color = textColor
+    },
+  }
 
   return (
     <nav 
@@ -53,33 +75,24 @@ export const NavigationBlock: React.FC<NavigationBlockProps> = ({ content, theme
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         {(content.items || []).map((item: any, index: number) => (
           <li key={index}>
-            <button
-              onClick={() => {
-                // If this nav item is connected to a page, switch to that page
-                if (item.pageId) {
-                  // In a real app, you'd handle routing here
-                  if (typeof window !== 'undefined') {
-                    console.log(`Navigate to page: ${item.pageId}`)
-                  }
-                }
-              }}
-              className={`hover:opacity-75 transition-opacity cursor-pointer ${
-                item.pageId ? 'font-medium' : ''
-              }`}
-              style={{ color: textColor }}
-              onMouseEnter={(e) => {
-                if (hoverColor) {
-                  e.currentTarget.style.color = hoverColor
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (textColor) {
-                  e.currentTarget.style.color = textColor
-                }
-              }}
-            >
-              {item.label || ''}
-            </button>
+            {isSiteMode ? (
+              <Link
+                href={resolveHref(item.link)}
+                className={itemClassName(!!item.pageId)}
+                style={{ color: textColor }}
+                {...hoverHandlers}
+              >
+                {item.label || ''}
+              </Link>
+            ) : (
+              <span
+                className={`${itemClassName(!!item.pageId)} cursor-default`}
+                style={{ color: textColor }}
+                {...hoverHandlers}
+              >
+                {item.label || ''}
+              </span>
+            )}
           </li>
         ))}
       </ul>

@@ -2,32 +2,21 @@ import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { getWebsiteByHost } from "@/src/domains/website/db";
 import { SiteRenderer } from "@/src/components/packages/builder/render/SiteRenderer";
-import { NotFoundContent } from "../_components/NotFoundContent";
 import type { ContentBlock, GlobalBlock, ThemeColors } from "@/src/components/packages/builder/types";
 
-export default async function Page({ params }: { params: Promise<{ slug: string[] }> }) {
-  const { slug } = await params;
+export default async function Page() {
   const host = (await headers()).get("host");
   if (!host) return notFound();
 
   const data = await getWebsiteByHost(host);
   if (!data) return notFound();
 
+  const homePage = data.pages.find((p) => p.slug === "home") ?? data.pages[0];
+  if (!homePage) return notFound();
+
+  const blocks = (homePage.blocksJson ?? []) as unknown as ContentBlock[];
   const globalBlocks = (data.globalBlocks ?? []) as unknown as GlobalBlock[];
   const themeColors = (data.themeColors ?? undefined) as ThemeColors | undefined;
-
-  const pageSlug = slug.join("/");
-  const page = data.pages.find((p) => p.slug === pageSlug);
-
-  if (!page) {
-    return (
-      <SiteRenderer globalBlocks={globalBlocks} themeColors={themeColors}>
-        <NotFoundContent />
-      </SiteRenderer>
-    );
-  }
-
-  const blocks = (page.blocksJson ?? []) as unknown as ContentBlock[];
 
   return (
     <SiteRenderer
