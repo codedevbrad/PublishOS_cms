@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation"
 import { getWebsite, getWebsiteCreations } from "@/src/domains/website/db"
 import { auth } from "@/auth"
-import { WebsiteBuilder } from "@/src/components/packages/builder/WebsiteBuilder"
+import { WebsiteBuilder } from "@/src/components/packages/cms/builder/WebsiteBuilder"
 import { DraftSelectorWrapper } from "./_components/DraftSelectorWrapper"
 
 interface WebsiteEditPageProps {

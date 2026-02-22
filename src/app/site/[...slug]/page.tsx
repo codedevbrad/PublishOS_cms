@@ -1,9 +1,9 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { getWebsiteByHost } from "@/src/domains/website/db";
-import { SiteRenderer } from "@/src/components/packages/builder/render/SiteRenderer";
+import { SiteRenderer } from "@/src/components/packages/cms/render/SiteRenderer";
 import { NotFoundContent } from "../_components/NotFoundContent";
-import type { ContentBlock, GlobalBlock, ThemeColors } from "@/src/components/packages/builder/types";
+import type { ContentBlock, GlobalBlock, ThemeColors } from "@/src/components/packages/cms/render/types";
 
 export default async function Page({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = await params;
