@@ -79,14 +79,14 @@ export default async function Home() {
                 <>
                   {user?.organisationId ? (
                     <Button asChild size="lg" className="text-lg px-8 py-6 animate-scale-in animation-delay-600 group">
-                      <Link href={`/org/${user.organisationId}`}>
+                      <Link href={`/build/org/${user.organisationId}`}>
                         Go to Dashboard
                         <ArrowRight className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
                       </Link>
                     </Button>
                   ) : (
                     <Button asChild size="lg" className="text-lg px-8 py-6 animate-scale-in animation-delay-600 group">
-                      <Link href="/org">
+                      <Link href="/build/org">
                         Get Started
                         <ArrowRight className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
                       </Link>
@@ -96,13 +96,13 @@ export default async function Home() {
               ) : (
                 <>
                   <Button asChild size="lg" className="text-lg px-8 py-6 animate-scale-in animation-delay-600 group">
-                    <Link href="/auth/signup">
+                    <Link href="/build/auth/signup">
                       Start Building Free
                       <ArrowRight className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
                     </Link>
                   </Button>
                   <Button asChild variant="outline" size="lg" className="text-lg px-8 py-6 animate-scale-in animation-delay-600">
-                    <Link href="/auth/signin">
+                    <Link href="/build/auth/signin">
                       Sign In
                     </Link>
                   </Button>
@@ -227,7 +227,7 @@ export default async function Home() {
                   Join thousands of creators who are building beautiful websites with PublishOS.
                 </p>
                 <Button asChild size="lg" className="text-lg px-8 py-6">
-                  <Link href="/auth/signup">
+                  <Link href="/build/auth/signup">
                     Get Started for Free
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Link>

@@ -12,7 +12,7 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-5 flex justify-center">
       <div className="container flex h-14 items-center">
         <div className=" flex">
-          <Link href="/" className="flex">
+          <Link href="/build" className="flex">
             <h3 className="font-bold">
               PublishOS
             </h3>
@@ -41,10 +41,10 @@ export function Header() {
             ) : (
               <div className="flex items-center gap-2">
                 <Button variant="ghost" asChild>
-                  <Link href="/auth/signin">Sign In</Link>
+                  <Link href="/build/auth/signin">Sign In</Link>
                 </Button>
                 <Button asChild>
-                  <Link href="/auth/signup">Sign Up</Link>
+                  <Link href="/build/auth/signup">Sign Up</Link>
                 </Button>
               </div>
             )}

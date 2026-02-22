@@ -13,7 +13,7 @@ export default async function AnalyticsPage({ params }: AnalyticsPageProps) {
   const session = await auth()
 
   if (!session?.user?.id) {
-    redirect("/auth/signin")
+    redirect("/build/auth/signin")
   }
 
   const website = await getWebsite(websiteid)

@@ -72,9 +72,9 @@ export function SignUpForm() {
         await mutate("user");
         await mutate("current-user-organisation");
         if (result.data?.organisationId) {
-          router.push(`/org/${result.data.organisationId}`);
+          router.push(`/build/org/${result.data.organisationId}`);
         } else {
-          router.push("/org");
+          router.push("/build/org");
         }
         router.refresh();
       }

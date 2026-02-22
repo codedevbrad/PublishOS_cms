@@ -7,5 +7,5 @@ export default async function Page({
 }) {
   const host = (await headers()).get("host");
 
-  return <div>Hello from { host } </div>;
+  return <div> default page { host } </div>;
 }

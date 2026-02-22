@@ -11,7 +11,7 @@ export default async function DataPage({ params }: DataPageProps) {
   const session = await auth()
 
   if (!session?.user?.id) {
-    redirect("/auth/signin")
+    redirect("/build/auth/signin")
   }
 
   const website = await getWebsite(websiteid)

@@ -24,7 +24,7 @@ export default async function SignInPage({
         <SignInForm />
         <div className="text-center text-sm">
           <span className="text-muted-foreground">Don&apos;t have an account? </span>
-          <Link href="/auth/signup" className="text-primary hover:underline">
+          <Link href="/build/auth/signup" className="text-primary hover:underline">
             Sign up
           </Link>
         </div>

@@ -15,7 +15,7 @@ export default async function WebsiteEditPage({ params, searchParams }: WebsiteE
   const session = await auth();
 
   if (!session?.user?.id) {
-    redirect("/auth/signin");
+    redirect("/build/auth/signin");
   }
 
   const website = await getWebsite(websiteid);

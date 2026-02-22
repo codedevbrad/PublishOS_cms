@@ -6,13 +6,13 @@ export default async function Home() {
   const session = await auth();
   
   if (!session?.user?.id) {
-    redirect("/auth/signin");
+    redirect("/build/auth/signin");
   }
 
   const user = await getCurrentUser();
   
   if (user?.organisationId) {
-    redirect(`/org/${user.organisationId}`);
+    redirect(`/build/org/${user.organisationId}`);
   }
 
   return (

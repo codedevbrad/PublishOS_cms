@@ -108,7 +108,7 @@ export function DomainList({ organisationId }: DomainListProps) {
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <Link
-                      href={`/org/${organisationId}/domain/${domain.id}`}
+                      href={`/build/org/${organisationId}/domain/${domain.id}`}
                       className="font-medium hover:underline flex items-center gap-1"
                     >
                       {domain.name}

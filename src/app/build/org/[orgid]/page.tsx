@@ -12,7 +12,7 @@ export default async function OrganisationPage({ params }: OrganisationPageProps
   const session = await auth();
 
   if (!session?.user?.id) {
-    redirect("/auth/signin");
+    redirect("/build/auth/signin");
   }
 
   const organisation = await getOrganisation(orgid);
