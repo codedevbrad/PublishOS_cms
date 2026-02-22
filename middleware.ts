@@ -24,9 +24,8 @@ export default async function middleware(req: NextRequest) {
     return (auth as any)(req);
   }
 
-  // Custom domain — rewrite to the multi-tenant /site/[domain] route
   const url = req.nextUrl.clone();
-  url.pathname = `/site/${hostname}${url.pathname}`;
+  url.pathname = `/site${url.pathname}`;
   return NextResponse.rewrite(url);
 }
 
