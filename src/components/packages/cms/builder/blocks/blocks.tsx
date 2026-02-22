@@ -1,19 +1,27 @@
 'use client'
 import React from 'react';
-import { Layout, Image, FileText, HelpCircle, MapPin, Phone, Users, Monitor, Tablet, Smartphone, Quote, Grid3x3, Briefcase } from 'lucide-react';
+import { Layout, Image, FileText, HelpCircle, Phone, Monitor, Tablet, Smartphone, Quote, Grid3x3, Briefcase } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import { ColorPaletteSelector } from '../_components/ColorPaletteSelector';
 
-// Dynamically import block components
-const HeroBlock = dynamic(() => import('./hero/HeroBlock'), { ssr: false });
-const QuoteBlock = dynamic(() => import('./quote/QuoteBlock'), { ssr: false });
-const AboutBlock = dynamic(() => import('./about/AboutBlock'), { ssr: false });
-const ImageBlock = dynamic(() => import('./image/ImageBlock'), { ssr: false });
-const FAQBlock = dynamic(() => import('./faq/FAQBlock'), { ssr: false });
-const GalleryBlock = dynamic(() => import('./gallery/GalleryBlock'), { ssr: false });
-const ServicesListBlock = dynamic(() => import('./services/ServicesListBlock'), { ssr: false });
+const HeroBlock = dynamic(() => import('../../_shared/blocks/hero/block.hero.render'), { ssr: false });
+const QuoteBlock = dynamic(() => import('../../_shared/blocks/quote/block.quote.render'), { ssr: false });
+const AboutBlock = dynamic(() => import('../../_shared/blocks/about/block.about.render'), { ssr: false });
+const ImageBlock = dynamic(() => import('../../_shared/blocks/image/block.image.render'), { ssr: false });
+const FAQBlock = dynamic(() => import('../../_shared/blocks/faq/block.faq.render'), { ssr: false });
+const GalleryBlock = dynamic(() => import('../../_shared/blocks/gallery/block.gallery.render'), { ssr: false });
+const ServicesListBlock = dynamic(() => import('../../_shared/blocks/services/block.services.render'), { ssr: false });
+const ContactBlock = dynamic(() => import('../../_shared/blocks/contact/block.contact.render'), { ssr: false });
+const TeamBlock = dynamic(() => import('../../_shared/blocks/team/block.team.render'), { ssr: false });
 
-// Import global block components
+const HeroBlockEdit = dynamic(() => import('../../_shared/blocks/hero/block.hero.edit'), { ssr: false });
+const AboutBlockEdit = dynamic(() => import('../../_shared/blocks/about/block.about.edit'), { ssr: false });
+const ImageBlockEdit = dynamic(() => import('../../_shared/blocks/image/block.image.edit'), { ssr: false });
+const FAQBlockEdit = dynamic(() => import('../../_shared/blocks/faq/block.faq.edit'), { ssr: false });
+const ContactBlockEdit = dynamic(() => import('../../_shared/blocks/contact/block.contact.edit'), { ssr: false });
+const TeamBlockEdit = dynamic(() => import('../../_shared/blocks/team/block.team.edit'), { ssr: false });
+const GalleryBlockEdit = dynamic(() => import('../../_shared/blocks/gallery/block.gallery.edit'), { ssr: false });
+const ServicesBlockEdit = dynamic(() => import('../../_shared/blocks/services/block.services.edit'), { ssr: false });
+
 import { HeaderBlock, HeaderBlockEditor } from '../globalblocks/header/headerBlock';
 import { NavigationBlock, NavigationBlockEditor } from '../globalblocks/navigation/navigationBlock';
 
@@ -28,7 +36,6 @@ interface ViewportConfig {
 
 type ViewportType = 'desktop' | 'tablet' | 'mobile';
 
-// Block type definitions
 export const BLOCK_TYPES = [
   { type: 'hero', name: 'Hero Section', icon: Layout, color: 'bg-blue-500', hasVariants: true },
   { type: 'quote', name: 'Quote Section', icon: Quote, color: 'bg-indigo-500', hasVariants: true },
@@ -40,7 +47,6 @@ export const BLOCK_TYPES = [
   { type: 'contact', name: 'Contact Section', icon: Phone, color: 'bg-red-500' },
 ];
 
-// Block variants for blocks that have multiple versions
 export const BLOCK_VARIANTS: Record<string, Array<{ id: string; name: string; description?: string }>> = {
   hero: [
     { id: 'style_a', name: 'Style A - Full Width with Background', description: 'Centered hero with background image' },
@@ -65,20 +71,17 @@ export const BLOCK_VARIANTS: Record<string, Array<{ id: string; name: string; de
   ],
 };
 
-// Global block types (header/nav)
 export const GLOBAL_BLOCK_TYPES = [
   { type: 'header', name: 'Header', icon: Layout, color: 'bg-indigo-500' },
   { type: 'nav', name: 'Navigation', icon: Layout, color: 'bg-cyan-500' },
 ];
 
-// Viewport configurations
 export const VIEWPORT_CONFIGS: Record<ViewportType, ViewportConfig> = {
   desktop: { name: 'Desktop', width: 1200, height: 800, icon: Monitor },
   tablet: { name: 'Tablet', width: 768, height: 1024, icon: Tablet },
   mobile: { name: 'Mobile', width: 375, height: 667, icon: Smartphone },
 };
 
-// Default content for different block types
 export const getDefaultBlockContent = (type: string, variant?: string, pages?: Page[]) => {
   switch (type) {
     case 'header':
@@ -89,7 +92,6 @@ export const getDefaultBlockContent = (type: string, variant?: string, pages?: P
         height: 'h-16'
       };
     case 'nav':
-      // Auto-generate nav items from pages
       const defaultNavItems = pages ? pages.map(page => ({
         label: page.name,
         link: `/${page.slug}`,
@@ -104,7 +106,7 @@ export const getDefaultBlockContent = (type: string, variant?: string, pages?: P
         textColor: '#374151',
         hoverColor: '#3b82f6',
         alignment: 'left',
-        autoSync: true // Flag to indicate if nav should sync with pages
+        autoSync: true
       };
     case 'hero':
       return {
@@ -215,7 +217,6 @@ export const getDefaultBlockContent = (type: string, variant?: string, pages?: P
   }
 };
 
-// Block renderer components
 export const BlockRenderer: React.FC<{ 
   block: ContentBlock | GlobalBlock; 
   isEditing: boolean; 
@@ -246,20 +247,16 @@ export const BlockRenderer: React.FC<{
       return <NavigationBlock content={content} themeColors={themeColors} />;
     
     case 'hero':
-      const heroVariant = content.variant || 'style_a';
-      return <HeroBlock variant={heroVariant} content={content} themeColors={themeColors} />;
+      return <HeroBlock variant={content.variant || 'style_a'} content={content} themeColors={themeColors} />;
     
     case 'quote':
-      const quoteVariant = content.variant || 'style_a';
-      return <QuoteBlock variant={quoteVariant} content={content} themeColors={themeColors} />;
+      return <QuoteBlock variant={content.variant || 'style_a'} content={content} themeColors={themeColors} />;
     
     case 'gallery':
-      const galleryVariant = content.variant || 'style_a';
-      return <GalleryBlock variant={galleryVariant} content={content} themeColors={themeColors} />;
+      return <GalleryBlock variant={content.variant || 'style_a'} content={content} themeColors={themeColors} />;
     
     case 'services':
-      const servicesVariant = content.variant || 'style_a';
-      return <ServicesListBlock variant={servicesVariant} content={content} themeColors={themeColors} />;
+      return <ServicesListBlock variant={content.variant || 'style_a'} content={content} themeColors={themeColors} />;
     
     case 'about':
       return <AboutBlock content={content} themeColors={themeColors} />;
@@ -271,81 +268,16 @@ export const BlockRenderer: React.FC<{
       return <FAQBlock content={content} themeColors={themeColors} />;
     
     case 'contact':
-      // Helper function to resolve color
-      const resolveContactColor = (color: string | undefined): string | undefined => {
-        if (!color) return undefined
-        if (themeColors && color in themeColors) {
-          return themeColors[color]
-        }
-        return color
-      }
-      const contactBgColor = resolveContactColor(content.backgroundColor)
-      const contactTextColor = resolveContactColor(content.textColor)
-      return (
-        <div className="py-16 px-8" style={{ backgroundColor: contactBgColor || '#1f2937', color: contactTextColor || '#ffffff' }}>
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-3xl font-bold mb-8">{content.title}</h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-center space-x-2">
-                <Phone className="w-5 h-5" />
-                <span>{content.phone}</span>
-              </div>
-              <div className="flex items-center justify-center space-x-2">
-                <span>@</span>
-                <span>{content.email}</span>
-              </div>
-              <div className="flex items-center justify-center space-x-2">
-                <MapPin className="w-5 h-5" />
-                <span>{content.address}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
+      return <ContactBlock content={content} themeColors={themeColors} />;
     
     case 'team':
-      // Helper function to resolve color
-      const resolveTeamColor = (color: string | undefined): string | undefined => {
-        if (!color) return undefined
-        if (themeColors && color in themeColors) {
-          return themeColors[color]
-        }
-        return color
-      }
-      const teamBgColor = resolveTeamColor(content.backgroundColor)
-      const teamTextColor = resolveTeamColor(content.textColor)
-      return (
-        <div className="py-16 px-8" style={{ backgroundColor: teamBgColor, color: teamTextColor }}>
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-3xl font-bold mb-12 text-center">{content.title}</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {content.members.map((member: any, index: number) => (
-                <div key={index} className="text-center">
-                  <div className="w-32 h-32 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
-                    {member.image ? (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img src={member.image} alt={member.name} className="w-full h-full object-cover rounded-full" />
-                    ) : (
-                      <Users className="w-12 h-12 text-gray-400" />
-                    )}
-                  </div>
-                  <h3 className="font-semibold text-lg">{member.name}</h3>
-                  <p className="text-blue-600 mb-2">{member.role}</p>
-                  <p className="text-gray-600 text-sm">{member.bio}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      );
+      return <TeamBlock content={content} themeColors={themeColors} />;
     
     default:
       return <div className="p-4 bg-gray-100 text-center">Unknown block type: {type}</div>;
   }
 };
 
-// Block editor component for inline editing
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const BlockEditor: React.FC<{ type: string; content: any; onUpdate: (content: any) => void; themeColors?: ThemeColors }> = ({ 
   type, 
@@ -353,688 +285,27 @@ const BlockEditor: React.FC<{ type: string; content: any; onUpdate: (content: an
   onUpdate,
   themeColors
 }) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleInputChange = (field: string, value: any) => {
-    onUpdate({ ...content, [field]: value });
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleArrayChange = (field: string, index: number, subField: string, value: any) => {
-    const newArray = [...content[field]];
-    newArray[index] = { ...newArray[index], [subField]: value };
-    onUpdate({ ...content, [field]: newArray });
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const addArrayItem = (field: string, defaultItem: any) => {
-    onUpdate({ ...content, [field]: [...content[field], defaultItem] });
-  };
-
-  const removeArrayItem = (field: string, index: number) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const newArray = content[field].filter((_: any, i: number) => i !== index);
-    onUpdate({ ...content, [field]: newArray });
-  };
-
   switch (type) {
     case 'header':
       return <HeaderBlockEditor content={content} onUpdate={onUpdate} themeColors={themeColors} />;
-
     case 'nav':
       return <NavigationBlockEditor content={content} onUpdate={onUpdate} themeColors={themeColors} />;
-
     case 'hero':
-      if (!themeColors) {
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Title</label>
-              <input
-                type="text"
-                value={content.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
-                className="w-full p-2 border rounded-md"
-              />
-            </div>
-            <div className="text-sm text-gray-500">
-              Theme colors not available. Please configure theme colors first.
-            </div>
-          </div>
-        )
-      }
-      return (
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Title</label>
-            <input
-              type="text"
-              value={content.title}
-              onChange={(e) => handleInputChange('title', e.target.value)}
-              className="w-full p-2 border rounded-md"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Subtitle</label>
-            <input
-              type="text"
-              value={content.subtitle}
-              onChange={(e) => handleInputChange('subtitle', e.target.value)}
-              className="w-full p-2 border rounded-md"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Button Text</label>
-            <input
-              type="text"
-              value={content.buttonText}
-              onChange={(e) => handleInputChange('buttonText', e.target.value)}
-              className="w-full p-2 border rounded-md"
-            />
-          </div>
-          <ColorPaletteSelector
-            themeColors={themeColors}
-            selectedColor={content.backgroundColor}
-            onSelect={(colorKey) => handleInputChange('backgroundColor', colorKey)}
-            label="Background Color"
-          />
-          <ColorPaletteSelector
-            themeColors={themeColors}
-            selectedColor={content.textColor}
-            onSelect={(colorKey) => handleInputChange('textColor', colorKey)}
-            label="Text Color"
-          />
-        </div>
-      );
-    
+      return <HeroBlockEdit content={content} onUpdate={onUpdate} themeColors={themeColors} />;
     case 'about':
-      if (!themeColors) {
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Title</label>
-              <input
-                type="text"
-                value={content.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
-                className="w-full p-2 border rounded-md"
-              />
-            </div>
-            <div className="text-sm text-gray-500">
-              Theme colors not available. Please configure theme colors first.
-            </div>
-          </div>
-        )
-      }
-      return (
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Title</label>
-            <input
-              type="text"
-              value={content.title}
-              onChange={(e) => handleInputChange('title', e.target.value)}
-              className="w-full p-2 border rounded-md"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Content</label>
-            <textarea
-              value={content.content}
-              onChange={(e) => handleInputChange('content', e.target.value)}
-              className="w-full p-2 border rounded-md h-24"
-            />
-          </div>
-          <ColorPaletteSelector
-            themeColors={themeColors}
-            selectedColor={content.backgroundColor}
-            onSelect={(colorKey) => handleInputChange('backgroundColor', colorKey)}
-            label="Background Color"
-          />
-          <ColorPaletteSelector
-            themeColors={themeColors}
-            selectedColor={content.textColor}
-            onSelect={(colorKey) => handleInputChange('textColor', colorKey)}
-            label="Text Color"
-          />
-        </div>
-      );
-    
+      return <AboutBlockEdit content={content} onUpdate={onUpdate} themeColors={themeColors} />;
     case 'image':
-      if (!themeColors) {
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Image URL</label>
-              <input
-                type="text"
-                value={content.src}
-                onChange={(e) => handleInputChange('src', e.target.value)}
-                className="w-full p-2 border rounded-md"
-                placeholder="https://example.com/image.jpg"
-              />
-            </div>
-            <div className="text-sm text-gray-500">
-              Theme colors not available. Please configure theme colors first.
-            </div>
-          </div>
-        )
-      }
-      return (
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Image URL</label>
-            <input
-              type="text"
-              value={content.src}
-              onChange={(e) => handleInputChange('src', e.target.value)}
-              className="w-full p-2 border rounded-md"
-              placeholder="https://example.com/image.jpg"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Alt Text</label>
-            <input
-              type="text"
-              value={content.alt}
-              onChange={(e) => handleInputChange('alt', e.target.value)}
-              className="w-full p-2 border rounded-md"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Caption</label>
-            <input
-              type="text"
-              value={content.caption}
-              onChange={(e) => handleInputChange('caption', e.target.value)}
-              className="w-full p-2 border rounded-md"
-            />
-          </div>
-          <ColorPaletteSelector
-            themeColors={themeColors}
-            selectedColor={content.backgroundColor}
-            onSelect={(colorKey) => handleInputChange('backgroundColor', colorKey)}
-            label="Background Color"
-          />
-        </div>
-      );
-    
+      return <ImageBlockEdit content={content} onUpdate={onUpdate} themeColors={themeColors} />;
     case 'faq':
-      if (!themeColors) {
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Title</label>
-              <input
-                type="text"
-                value={content.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
-                className="w-full p-2 border rounded-md"
-              />
-            </div>
-            <div className="text-sm text-gray-500">
-              Theme colors not available. Please configure theme colors first.
-            </div>
-          </div>
-        )
-      }
-      return (
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Title</label>
-            <input
-              type="text"
-              value={content.title}
-              onChange={(e) => handleInputChange('title', e.target.value)}
-              className="w-full p-2 border rounded-md"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">FAQ Items</label>
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            {content.items.map((item: any, index: number) => (
-              <div key={index} className="border p-3 rounded-md space-y-2 mb-2">
-                <input
-                  type="text"
-                  value={item.question}
-                  onChange={(e) => handleArrayChange('items', index, 'question', e.target.value)}
-                  className="w-full p-2 border rounded-md text-sm"
-                  placeholder="Question"
-                />
-                <textarea
-                  value={item.answer}
-                  onChange={(e) => handleArrayChange('items', index, 'answer', e.target.value)}
-                  className="w-full p-2 border rounded-md text-sm h-16"
-                  placeholder="Answer"
-                />
-                <button
-                  onClick={() => removeArrayItem('items', index)}
-                  className="text-red-500 text-sm hover:text-red-700"
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
-            <button
-              onClick={() => addArrayItem('items', { question: '', answer: '' })}
-              className="text-blue-500 text-sm hover:text-blue-700"
-            >
-              + Add FAQ Item
-            </button>
-          </div>
-          <ColorPaletteSelector
-            themeColors={themeColors}
-            selectedColor={content.backgroundColor}
-            onSelect={(colorKey) => handleInputChange('backgroundColor', colorKey)}
-            label="Background Color"
-          />
-          <ColorPaletteSelector
-            themeColors={themeColors}
-            selectedColor={content.textColor}
-            onSelect={(colorKey) => handleInputChange('textColor', colorKey)}
-            label="Text Color"
-          />
-        </div>
-      );
-
+      return <FAQBlockEdit content={content} onUpdate={onUpdate} themeColors={themeColors} />;
     case 'contact':
-      if (!themeColors) {
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Title</label>
-              <input
-                type="text"
-                value={content.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
-                className="w-full p-2 border rounded-md"
-              />
-            </div>
-            <div className="text-sm text-gray-500">
-              Theme colors not available. Please configure theme colors first.
-            </div>
-          </div>
-        )
-      }
-      return (
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Title</label>
-            <input
-              type="text"
-              value={content.title}
-              onChange={(e) => handleInputChange('title', e.target.value)}
-              className="w-full p-2 border rounded-md"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
-            <input
-              type="email"
-              value={content.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-              className="w-full p-2 border rounded-md"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Phone</label>
-            <input
-              type="text"
-              value={content.phone}
-              onChange={(e) => handleInputChange('phone', e.target.value)}
-              className="w-full p-2 border rounded-md"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Address</label>
-            <textarea
-              value={content.address}
-              onChange={(e) => handleInputChange('address', e.target.value)}
-              className="w-full p-2 border rounded-md h-16"
-            />
-          </div>
-          <ColorPaletteSelector
-            themeColors={themeColors}
-            selectedColor={content.backgroundColor}
-            onSelect={(colorKey) => handleInputChange('backgroundColor', colorKey)}
-            label="Background Color"
-          />
-          <ColorPaletteSelector
-            themeColors={themeColors}
-            selectedColor={content.textColor}
-            onSelect={(colorKey) => handleInputChange('textColor', colorKey)}
-            label="Text Color"
-          />
-        </div>
-      );
-
+      return <ContactBlockEdit content={content} onUpdate={onUpdate} themeColors={themeColors} />;
     case 'team':
-      if (!themeColors) {
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Title</label>
-              <input
-                type="text"
-                value={content.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
-                className="w-full p-2 border rounded-md"
-              />
-            </div>
-            <div className="text-sm text-gray-500">
-              Theme colors not available. Please configure theme colors first.
-            </div>
-          </div>
-        )
-      }
-      return (
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Title</label>
-            <input
-              type="text"
-              value={content.title}
-              onChange={(e) => handleInputChange('title', e.target.value)}
-              className="w-full p-2 border rounded-md"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Team Members</label>
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            {content.members.map((member: any, index: number) => (
-              <div key={index} className="border p-3 rounded-md space-y-2 mb-2">
-                <input
-                  type="text"
-                  value={member.name}
-                  onChange={(e) => handleArrayChange('members', index, 'name', e.target.value)}
-                  className="w-full p-2 border rounded-md text-sm"
-                  placeholder="Name"
-                />
-                <input
-                  type="text"
-                  value={member.role}
-                  onChange={(e) => handleArrayChange('members', index, 'role', e.target.value)}
-                  className="w-full p-2 border rounded-md text-sm"
-                  placeholder="Role"
-                />
-                <textarea
-                  value={member.bio}
-                  onChange={(e) => handleArrayChange('members', index, 'bio', e.target.value)}
-                  className="w-full p-2 border rounded-md text-sm h-16"
-                  placeholder="Bio"
-                />
-                <button
-                  onClick={() => removeArrayItem('members', index)}
-                  className="text-red-500 text-sm hover:text-red-700"
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
-            <button
-              onClick={() => addArrayItem('members', { name: '', role: '', image: '', bio: '' })}
-              className="text-blue-500 text-sm hover:text-blue-700"
-            >
-              + Add Team Member
-            </button>
-          </div>
-          <ColorPaletteSelector
-            themeColors={themeColors}
-            selectedColor={content.backgroundColor}
-            onSelect={(colorKey) => handleInputChange('backgroundColor', colorKey)}
-            label="Background Color"
-          />
-          <ColorPaletteSelector
-            themeColors={themeColors}
-            selectedColor={content.textColor}
-            onSelect={(colorKey) => handleInputChange('textColor', colorKey)}
-            label="Text Color"
-          />
-        </div>
-      );
-
+      return <TeamBlockEdit content={content} onUpdate={onUpdate} themeColors={themeColors} />;
     case 'gallery':
-      if (!themeColors) {
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Title</label>
-              <input
-                type="text"
-                value={content.title || ''}
-                onChange={(e) => handleInputChange('title', e.target.value)}
-                className="w-full p-2 border rounded-md"
-                placeholder="Gallery Title"
-              />
-            </div>
-            <div className="text-sm text-gray-500">
-              Theme colors not available. Please configure theme colors first.
-            </div>
-          </div>
-        )
-      }
-      return (
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Title</label>
-            <input
-              type="text"
-              value={content.title || ''}
-              onChange={(e) => handleInputChange('title', e.target.value)}
-              className="w-full p-2 border rounded-md"
-              placeholder="Gallery Title"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Description</label>
-            <textarea
-              value={content.description || ''}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              className="w-full p-2 border rounded-md h-20"
-              placeholder="Gallery description"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Images</label>
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            {(content.images || []).map((image: any, index: number) => (
-              <div key={image.id || index} className="border p-3 rounded-md space-y-2 mb-2">
-                <div className="flex gap-2">
-                  {image.src && (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img src={image.src} alt={image.alt || ''} className="w-20 h-20 object-cover rounded" />
-                  )}
-                  <div className="flex-1 space-y-2">
-                    <input
-                      type="text"
-                      value={image.src || ''}
-                      onChange={(e) => handleArrayChange('images', index, 'src', e.target.value)}
-                      className="w-full p-2 border rounded-md text-sm"
-                      placeholder="Image URL"
-                    />
-                    <input
-                      type="text"
-                      value={image.alt || ''}
-                      onChange={(e) => handleArrayChange('images', index, 'alt', e.target.value)}
-                      className="w-full p-2 border rounded-md text-sm"
-                      placeholder="Alt text"
-                    />
-                    <input
-                      type="text"
-                      value={image.caption || ''}
-                      onChange={(e) => handleArrayChange('images', index, 'caption', e.target.value)}
-                      className="w-full p-2 border rounded-md text-sm"
-                      placeholder="Caption (optional)"
-                    />
-                  </div>
-                </div>
-                <button
-                  onClick={() => removeArrayItem('images', index)}
-                  className="text-red-500 text-sm hover:text-red-700"
-                >
-                  Remove Image
-                </button>
-              </div>
-            ))}
-            <button
-              onClick={() => addArrayItem('images', { 
-                id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, 
-                src: '', 
-                alt: '', 
-                caption: '' 
-              })}
-              className="text-blue-500 text-sm hover:text-blue-700"
-            >
-              + Add Image
-            </button>
-          </div>
-          {themeColors && (
-            <>
-              <ColorPaletteSelector
-                themeColors={themeColors}
-                selectedColor={content.backgroundColor}
-                onSelect={(colorKey) => handleInputChange('backgroundColor', colorKey)}
-                label="Background Color"
-              />
-              <ColorPaletteSelector
-                themeColors={themeColors}
-                selectedColor={content.textColor}
-                onSelect={(colorKey) => handleInputChange('textColor', colorKey)}
-                label="Text Color"
-              />
-            </>
-          )}
-        </div>
-      );
-
+      return <GalleryBlockEdit content={content} onUpdate={onUpdate} themeColors={themeColors} />;
     case 'services':
-      if (!themeColors) {
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Title</label>
-              <input
-                type="text"
-                value={content.title || ''}
-                onChange={(e) => handleInputChange('title', e.target.value)}
-                className="w-full p-2 border rounded-md"
-                placeholder="Services Title"
-              />
-            </div>
-            <div className="text-sm text-gray-500">
-              Theme colors not available. Please configure theme colors first.
-            </div>
-          </div>
-        )
-      }
-      return (
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Title</label>
-            <input
-              type="text"
-              value={content.title || ''}
-              onChange={(e) => handleInputChange('title', e.target.value)}
-              className="w-full p-2 border rounded-md"
-              placeholder="Services Title"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Description</label>
-            <textarea
-              value={content.description || ''}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              className="w-full p-2 border rounded-md h-20"
-              placeholder="Services description"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Services</label>
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            {(content.services || []).map((service: any, index: number) => (
-              <div key={service.id || index} className="border p-3 rounded-md space-y-2 mb-2">
-                <div className="flex gap-2">
-                  {service.image && (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img src={service.image} alt={service.title || ''} className="w-20 h-20 object-cover rounded" />
-                  )}
-                  <div className="flex-1 space-y-2">
-                    <input
-                      type="text"
-                      value={service.title || ''}
-                      onChange={(e) => handleArrayChange('services', index, 'title', e.target.value)}
-                      className="w-full p-2 border rounded-md text-sm"
-                      placeholder="Service Title"
-                    />
-                    <input
-                      type="text"
-                      value={service.subtitle || ''}
-                      onChange={(e) => handleArrayChange('services', index, 'subtitle', e.target.value)}
-                      className="w-full p-2 border rounded-md text-sm"
-                      placeholder="Subtitle (optional)"
-                    />
-                    <input
-                      type="text"
-                      value={service.image || ''}
-                      onChange={(e) => handleArrayChange('services', index, 'image', e.target.value)}
-                      className="w-full p-2 border rounded-md text-sm"
-                      placeholder="Image URL"
-                    />
-                    <textarea
-                      value={service.description || ''}
-                      onChange={(e) => handleArrayChange('services', index, 'description', e.target.value)}
-                      className="w-full p-2 border rounded-md text-sm h-16"
-                      placeholder="Description"
-                    />
-                    <input
-                      type="text"
-                      value={service.link || ''}
-                      onChange={(e) => handleArrayChange('services', index, 'link', e.target.value)}
-                      className="w-full p-2 border rounded-md text-sm"
-                      placeholder="Link URL (optional)"
-                    />
-                  </div>
-                </div>
-                <button
-                  onClick={() => removeArrayItem('services', index)}
-                  className="text-red-500 text-sm hover:text-red-700"
-                >
-                  Remove Service
-                </button>
-              </div>
-            ))}
-            <button
-              onClick={() => addArrayItem('services', { 
-                id: `service-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, 
-                title: '', 
-                subtitle: '', 
-                description: '', 
-                image: '', 
-                link: '' 
-              })}
-              className="text-blue-500 text-sm hover:text-blue-700"
-            >
-              + Add Service
-            </button>
-          </div>
-          {themeColors && (
-            <>
-              <ColorPaletteSelector
-                themeColors={themeColors}
-                selectedColor={content.backgroundColor}
-                onSelect={(colorKey) => handleInputChange('backgroundColor', colorKey)}
-                label="Background Color"
-              />
-              <ColorPaletteSelector
-                themeColors={themeColors}
-                selectedColor={content.textColor}
-                onSelect={(colorKey) => handleInputChange('textColor', colorKey)}
-                label="Text Color"
-              />
-            </>
-          )}
-        </div>
-      );
-
+      return <ServicesBlockEdit content={content} onUpdate={onUpdate} themeColors={themeColors} />;
     default:
       return <div className="p-4 text-center">Editor for {type} not implemented</div>;
   }

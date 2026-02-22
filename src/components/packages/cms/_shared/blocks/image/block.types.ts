@@ -2,12 +2,12 @@ import type { ThemeColors } from '../../types'
 
 export type { ThemeColors }
 
-export interface ExampleBlockProps {
+export interface ImageBlockProps {
   content: {
-    title?: string
-    description?: string
+    src?: string
+    alt?: string
+    caption?: string
     backgroundColor?: string
-    textColor?: string
   }
   themeColors?: ThemeColors
 }

@@ -2,10 +2,10 @@ import type { ThemeColors } from '../../types'
 
 export type { ThemeColors }
 
-export interface ExampleBlockProps {
+export interface FAQBlockProps {
   content: {
     title?: string
-    description?: string
+    items?: Array<{ question: string; answer: string }>
     backgroundColor?: string
     textColor?: string
   }
