@@ -1,15 +1,10 @@
-import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-export default async function Page({
-  params
-}: {
-  params: { domain: string; slug?: string[] }
-}) {
-  const host = (await headers()).get("host");
-
+export default function Page() {
+  redirect("/build");
   return <html>
     <body>
-      <div>Hello from { host } </div>
+      <div> home page </div>
     </body>
   </html>;
 }

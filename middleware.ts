@@ -18,10 +18,13 @@ export default async function middleware(req: NextRequest) {
   const hostname = getHostname(req);
 
   if (APP_HOSTNAMES.has(hostname)) {
+    if (req.nextUrl.pathname === "/") {
+      return NextResponse.redirect(new URL("/build", req.url));
+    }
     return (auth as any)(req);
   }
 
-  // Custom domain — rewrite to the multi-tenant /sites/[domain] route
+  // Custom domain — rewrite to the multi-tenant /site/[domain] route
   const url = req.nextUrl.clone();
   url.pathname = `/site/${hostname}${url.pathname}`;
   return NextResponse.rewrite(url);
