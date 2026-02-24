@@ -34,9 +34,45 @@ export function CreateWebsiteForm({
 }: CreateWebsiteFormProps) {
   const [name, setName] = useState("");
   const [domainName, setDomainName] = useState("");
+  const [domainNames, setDomainNames] = useState<string[]>([]);
   const [tld, setTld] = useState(".co.uk");
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
+
+  const normalizeDomain = (value: string) =>
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/^https?:\/\//, "")
+      .split("/")[0]
+      .replace(/:\d+$/, "");
+
+  const handleAddDomain = () => {
+    const fullDomainUrl = `${domainName.trim()}${tld === "none" ? "" : tld}`;
+    const normalized = normalizeDomain(fullDomainUrl);
+
+    if (!normalized) {
+      setError("Domain name is required");
+      return;
+    }
+
+    if (domainNames.some((d) => d.toLowerCase() === normalized)) {
+      setError("Domain already added");
+      return;
+    }
+
+    setDomainNames((prev) => [...prev, normalized]);
+    setDomainName("");
+    setError("");
+  };
+
+  const handleDomainChange = (index: number, value: string) => {
+    setDomainNames((prev) => prev.map((domain, i) => (i === index ? value : domain)));
+  };
+
+  const handleDeleteDomain = (index: number) => {
+    setDomainNames((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,18 +83,26 @@ export function CreateWebsiteForm({
       return;
     }
 
-    if (!domainName.trim()) {
-      setError("Domain name is required");
+    const draftDomain = normalizeDomain(
+      `${domainName.trim()}${tld === "none" ? "" : tld}`
+    );
+    const preparedDomains = Array.from(
+      new Set(
+        [...domainNames, draftDomain]
+          .map((d) => normalizeDomain(d))
+          .filter(Boolean)
+      )
+    );
+    if (preparedDomains.length === 0) {
+      setError("At least one domain name is required");
       return;
     }
-
-    const fullDomainUrl = `${domainName.trim()}${tld === "none" ? "" : tld}`;
 
     startTransition(async () => {
       const result = await createWebsite(
         domainId,
         name.trim(),
-        fullDomainUrl
+        preparedDomains
       );
 
       if (!result.success) {
@@ -87,7 +131,7 @@ export function CreateWebsiteForm({
         />
       </div>
       <div className="space-y-2">
-        <label className="text-sm font-medium">Domain *</label>
+        <label className="text-sm font-medium">Domains *</label>
         <div className="flex items-center gap-1">
           <span className="text-sm text-muted-foreground">https://</span>
           <Input
@@ -111,6 +155,32 @@ export function CreateWebsiteForm({
               ))}
             </SelectContent>
           </Select>
+          <Button type="button" variant="outline" onClick={handleAddDomain} disabled={isPending}>
+            Add
+          </Button>
+        </div>
+        <div className="space-y-2">
+          {domainNames.length === 0 && (
+            <p className="text-xs text-muted-foreground">Add one or more domains for this website.</p>
+          )}
+          {domainNames.map((domain, index) => (
+            <div key={`${domain}-${index}`} className="flex items-center gap-2">
+              <Input
+                type="text"
+                value={domain}
+                onChange={(e) => handleDomainChange(index, e.target.value)}
+                disabled={isPending}
+              />
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => handleDeleteDomain(index)}
+                disabled={isPending}
+              >
+                Delete
+              </Button>
+            </div>
+          ))}
         </div>
       </div>
       {error && (

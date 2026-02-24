@@ -17,7 +17,7 @@ export async function getAnalytics_all(
 
   const { host, projectId, personalKey } = config.config;
 
-  // Get website to get domainUrl - avoid circular import
+  // Get website to get a primary domain name - avoid circular import
   const { prisma } = await import("@/src/lib/db");
   const { auth } = await import("@/auth");
   
@@ -33,6 +33,12 @@ export async function getAnalytics_all(
         include: {
           organisation: true,
         },
+      },
+      domainNames: {
+        orderBy: {
+          createdAt: "asc",
+        },
+        take: 1,
       },
     },
   });
@@ -50,8 +56,12 @@ export async function getAnalytics_all(
     throw new Error("Unauthorized");
   }
 
-  const domain = website.domainUrl;
-  const cleanDomain = domain.replace("https://", "").replace("http://", "");
+  const primaryDomain = website.domainNames[0]?.name;
+  if (!primaryDomain) {
+    throw new Error("No domain names configured for this website");
+  }
+
+  const cleanDomain = primaryDomain.replace("https://", "").replace("http://", "");
 
   const dateFilter =
     range === "all"

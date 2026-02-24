@@ -1,8 +1,8 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { getWebsiteByHost } from "@/src/domains/website/db";
-import { SiteRenderer } from "@/src/components/packages/builder/render/SiteRenderer";
-import type { ContentBlock, GlobalBlock, ThemeColors } from "@/src/components/packages/builder/types";
+import { SiteRenderer } from "@/src/components/packages/cms/render/SiteRenderer";
+import type { ContentBlock, GlobalBlock, ThemeColors } from "@/src/components/packages/cms/render/types";
 
 export default async function Page() {
   const host = (await headers()).get("host");
