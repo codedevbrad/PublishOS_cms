@@ -38,6 +38,30 @@ CREATE TABLE "Domain" (
 );
 
 -- CreateTable
+CREATE TABLE "DomainName" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "websiteId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "DomainName_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Website" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "organisationId" TEXT NOT NULL,
+    "domainId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Website_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "WebsiteCreation" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -65,20 +89,6 @@ CREATE TABLE "Page" (
 );
 
 -- CreateTable
-CREATE TABLE "Website" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "domainUrl" TEXT NOT NULL,
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "organisationId" TEXT NOT NULL,
-    "domainId" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Website_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
     "username" TEXT NOT NULL,
@@ -95,6 +105,9 @@ CREATE INDEX "ServiceConfig_domainId_idx" ON "ServiceConfig"("domainId");
 
 -- CreateIndex
 CREATE INDEX "ServiceConfig_websiteId_idx" ON "ServiceConfig"("websiteId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "DomainName_name_key" ON "DomainName"("name");
 
 -- CreateIndex
 CREATE INDEX "WebsiteCreation_websiteId_isActive_idx" ON "WebsiteCreation"("websiteId", "isActive");
@@ -115,16 +128,19 @@ ALTER TABLE "ServiceConfig" ADD CONSTRAINT "ServiceConfig_websiteId_fkey" FOREIG
 ALTER TABLE "Domain" ADD CONSTRAINT "Domain_organisationId_fkey" FOREIGN KEY ("organisationId") REFERENCES "Organisation"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WebsiteCreation" ADD CONSTRAINT "WebsiteCreation_websiteId_fkey" FOREIGN KEY ("websiteId") REFERENCES "Website"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Page" ADD CONSTRAINT "Page_websiteCreationId_fkey" FOREIGN KEY ("websiteCreationId") REFERENCES "WebsiteCreation"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "DomainName" ADD CONSTRAINT "DomainName_websiteId_fkey" FOREIGN KEY ("websiteId") REFERENCES "Website"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Website" ADD CONSTRAINT "Website_organisationId_fkey" FOREIGN KEY ("organisationId") REFERENCES "Organisation"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Website" ADD CONSTRAINT "Website_domainId_fkey" FOREIGN KEY ("domainId") REFERENCES "Domain"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WebsiteCreation" ADD CONSTRAINT "WebsiteCreation_websiteId_fkey" FOREIGN KEY ("websiteId") REFERENCES "Website"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Page" ADD CONSTRAINT "Page_websiteCreationId_fkey" FOREIGN KEY ("websiteCreationId") REFERENCES "WebsiteCreation"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_organisationId_fkey" FOREIGN KEY ("organisationId") REFERENCES "Organisation"("id") ON DELETE SET NULL ON UPDATE CASCADE;

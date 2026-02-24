@@ -7,7 +7,10 @@ import type { ContentBlock, GlobalBlock, ThemeColors } from "@/src/components/pa
 
 export default async function Page({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = await params;
-  const host = (await headers()).get("host");
+  const requestHeaders = await headers();
+  const host =
+    requestHeaders.get("x-forwarded-host") ??
+    requestHeaders.get("host");
   if (!host) return notFound();
 
   const data = await getWebsiteByHost(host);

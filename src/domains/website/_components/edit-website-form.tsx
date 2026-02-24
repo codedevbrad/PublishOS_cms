@@ -33,7 +33,7 @@ function parseDomainUrl(domainUrl: string): { name: string; tld: string } {
 interface EditWebsiteFormProps {
   websiteId: string;
   initialName: string;
-  initialDomainUrl: string;
+  initialDomainNames: string[];
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -41,16 +41,53 @@ interface EditWebsiteFormProps {
 export function EditWebsiteForm({
   websiteId,
   initialName,
-  initialDomainUrl,
+  initialDomainNames,
   onSuccess,
   onCancel,
 }: EditWebsiteFormProps) {
-  const parsed = parseDomainUrl(initialDomainUrl);
+  const firstDomain = initialDomainNames[0] ?? "";
+  const parsed = parseDomainUrl(firstDomain);
   const [name, setName] = useState(initialName);
+  const [domainNames, setDomainNames] = useState(initialDomainNames);
   const [domainName, setDomainName] = useState(parsed.name);
   const [tld, setTld] = useState(parsed.tld);
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
+
+  const normalizeDomain = (value: string) =>
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/^https?:\/\//, "")
+      .split("/")[0]
+      .replace(/:\d+$/, "");
+
+  const handleAddDomain = () => {
+    const fullDomainUrl = `${domainName.trim()}${tld === "none" ? "" : tld}`;
+    const normalized = normalizeDomain(fullDomainUrl);
+
+    if (!normalized) {
+      setError("Domain name is required");
+      return;
+    }
+
+    if (domainNames.some((d) => d.toLowerCase() === normalized)) {
+      setError("Domain already added");
+      return;
+    }
+
+    setDomainNames((prev) => [...prev, normalized]);
+    setDomainName("");
+    setError("");
+  };
+
+  const handleDomainChange = (index: number, value: string) => {
+    setDomainNames((prev) => prev.map((domain, i) => (i === index ? value : domain)));
+  };
+
+  const handleDeleteDomain = (index: number) => {
+    setDomainNames((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,18 +98,26 @@ export function EditWebsiteForm({
       return;
     }
 
-    if (!domainName.trim()) {
-      setError("Domain name is required");
+    const draftDomain = normalizeDomain(
+      `${domainName.trim()}${tld === "none" ? "" : tld}`
+    );
+    const preparedDomains = Array.from(
+      new Set(
+        [...domainNames, draftDomain]
+          .map((d) => normalizeDomain(d))
+          .filter(Boolean)
+      )
+    );
+    if (preparedDomains.length === 0) {
+      setError("At least one domain name is required");
       return;
     }
-
-    const fullDomainUrl = `${domainName.trim()}${tld === "none" ? "" : tld}`;
 
     startTransition(async () => {
       const result = await updateWebsite(
         websiteId,
         name.trim(),
-        fullDomainUrl
+        preparedDomains
       );
 
       if (!result.success) {
@@ -99,7 +144,7 @@ export function EditWebsiteForm({
         />
       </div>
       <div className="space-y-2">
-        <label className="text-sm font-medium">Domain *</label>
+        <label className="text-sm font-medium">Domains *</label>
         <div className="flex items-center gap-1">
           <span className="text-sm text-muted-foreground">https://</span>
           <Input
@@ -123,6 +168,29 @@ export function EditWebsiteForm({
               ))}
             </SelectContent>
           </Select>
+          <Button type="button" variant="outline" onClick={handleAddDomain} disabled={isPending}>
+            Add
+          </Button>
+        </div>
+        <div className="space-y-2">
+          {domainNames.map((domain, index) => (
+            <div key={`${domain}-${index}`} className="flex items-center gap-2">
+              <Input
+                type="text"
+                value={domain}
+                onChange={(e) => handleDomainChange(index, e.target.value)}
+                disabled={isPending}
+              />
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => handleDeleteDomain(index)}
+                disabled={isPending}
+              >
+                Delete
+              </Button>
+            </div>
+          ))}
         </div>
       </div>
       {error && (

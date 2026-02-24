@@ -64,7 +64,12 @@ export async function getDomain(domainId: string) {
           select: {
             id: true,
             name: true,
-            domainUrl: true,
+            domainNames: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
             isActive: true,
           },
         },

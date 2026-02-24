@@ -112,7 +112,7 @@ export function WebsiteList({ domainId, organisationId }: WebsiteListProps) {
               <EditWebsiteForm
                 websiteId={website.id}
                 initialName={website.name}
-                initialDomainUrl={website.domainUrl}
+                initialDomainNames={website.domainNames.map((domainName) => domainName.name)}
                 onSuccess={() => {
                   setEditingWebsiteId(null);
                   mutate();
@@ -134,9 +134,16 @@ export function WebsiteList({ domainId, organisationId }: WebsiteListProps) {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    https://{website.domainUrl}
-                  </p>
+                  <div className="mt-1 space-y-1">
+                    {website.domainNames.map((domainName) => (
+                      <p key={domainName.id} className="text-sm text-muted-foreground">
+                        https://{domainName.name}
+                      </p>
+                    ))}
+                    {website.domainNames.length === 0 && (
+                      <p className="text-sm text-muted-foreground">No domains configured</p>
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground mt-2">
                     Created {new Date(website.createdAt).toLocaleDateString()}
                   </p>

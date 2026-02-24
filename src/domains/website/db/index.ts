@@ -8,6 +8,18 @@ export type ActionResult<T = void> =
   | { success: true; data?: T }
   | { success: false; error: string };
 
+function normalizeHostOrDomain(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .split(",")[0]
+    .trim()
+    .replace(/^https?:\/\//, "")
+    .split("/")[0]
+    .replace(/\.$/, "")
+    .replace(/:\d+$/, "");
+}
+
 export async function getWebsitesByDomain(domainId: string) {
   try {
     const session = await auth();
@@ -37,6 +49,11 @@ export async function getWebsitesByDomain(domainId: string) {
 
     const websites = await prisma.website.findMany({
       where: { domainId },
+      include: {
+        domainNames: {
+          orderBy: { createdAt: "asc" },
+        },
+      },
       orderBy: {
         createdAt: "desc",
       },
@@ -70,6 +87,9 @@ export async function getWebsite(websiteId: string) {
           orderBy: { updatedAt: "desc" },
           include: { pages: true },
         },
+        domainNames: {
+          orderBy: { createdAt: "asc" },
+        },
       },
     });
 
@@ -96,7 +116,7 @@ export async function getWebsite(websiteId: string) {
 export async function createWebsite(
   domainId: string,
   name: string,
-  domainUrl: string
+  domainNames: string[]
 ): Promise<ActionResult<{ id: string }>> {
   try {
     const session = await auth();
@@ -128,16 +148,27 @@ export async function createWebsite(
       return { success: false, error: "Website name is required" };
     }
 
-    if (!domainUrl.trim()) {
-      return { success: false, error: "Domain URL is required" };
+    if (!domainNames.length) {
+      return { success: false, error: "At least one domain name is required" };
+    }
+
+    const cleanedDomainNames = Array.from(
+      new Set(domainNames.map(normalizeHostOrDomain).filter(Boolean))
+    );
+    if (!cleanedDomainNames.length) {
+      return { success: false, error: "At least one valid domain name is required" };
     }
 
     const website = await prisma.website.create({
       data: {
         name: name.trim(),
-        domainUrl: domainUrl.trim(),
         domainId,
         organisationId: domain.organisationId,
+        domainNames: {
+          createMany: {
+            data: cleanedDomainNames.map((nameValue) => ({ name: nameValue })),
+          },
+        },
         sites: {
           create: {
             name: "Main",
@@ -157,6 +188,15 @@ export async function createWebsite(
 
     return { success: true, data: { id: website.id } };
   } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return {
+        success: false,
+        error: "One or more domain names are already in use",
+      };
+    }
     console.error("Error creating website:", error);
     return { success: false, error: "Failed to create website" };
   }
@@ -165,7 +205,7 @@ export async function createWebsite(
 export async function updateWebsite(
   websiteId: string,
   name: string,
-  domainUrl: string
+  domainNames: string[]
 ): Promise<ActionResult> {
   try {
     const session = await auth();
@@ -182,6 +222,7 @@ export async function updateWebsite(
             organisation: true,
           },
         },
+        domainNames: true,
       },
     });
 
@@ -201,20 +242,48 @@ export async function updateWebsite(
       return { success: false, error: "Website name is required" };
     }
 
-    if (!domainUrl.trim()) {
-      return { success: false, error: "Domain URL is required" };
+    if (!domainNames.length) {
+      return { success: false, error: "At least one domain name is required" };
     }
 
-    await prisma.website.update({
-      where: { id: websiteId },
-      data: {
-        name: name.trim(),
-        domainUrl: domainUrl.trim(),
-      },
+    const cleanedDomainNames = Array.from(
+      new Set(domainNames.map(normalizeHostOrDomain).filter(Boolean))
+    );
+    if (!cleanedDomainNames.length) {
+      return { success: false, error: "At least one valid domain name is required" };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.website.update({
+        where: { id: websiteId },
+        data: {
+          name: name.trim(),
+        },
+      });
+
+      await tx.domainName.deleteMany({
+        where: { websiteId },
+      });
+
+      await tx.domainName.createMany({
+        data: cleanedDomainNames.map((nameValue) => ({
+          name: nameValue,
+          websiteId,
+        })),
+      });
     });
 
     return { success: true };
   } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return {
+        success: false,
+        error: "One or more domain names are already in use",
+      };
+    }
     console.error("Error updating website:", error);
     return { success: false, error: "Failed to update website" };
   }
@@ -332,8 +401,14 @@ export async function deleteWebsite(websiteId: string): Promise<ActionResult> {
       return { success: false, error: "Unauthorized" };
     }
 
-    await prisma.website.delete({
-      where: { id: websiteId },
+    await prisma.$transaction(async (tx) => {
+      await tx.domainName.deleteMany({
+        where: { websiteId },
+      });
+
+      await tx.website.delete({
+        where: { id: websiteId },
+      });
     });
 
     return { success: true };
@@ -540,18 +615,30 @@ export async function createOrUpdatePostHogConfig(
 
 export async function getWebsiteByHost(host: string) {
   try {
-    const website = await prisma.website.findFirst({
-      where: { domainUrl: host, isActive: true },
+    const normalizedHost = normalizeHostOrDomain(host);
+    if (!normalizedHost) return null;
+
+    const domainMatch = await prisma.domainName.findUnique({
+      where: {
+        name: normalizedHost,
+      },
       include: {
-        sites: {
-          where: { isActive: true },
-          take: 1,
-          include: { pages: true },
+        website: {
+          include: {
+            sites: {
+              where: { isActive: true },
+              take: 1,
+              include: { pages: true },
+            },
+            domainNames: true,
+          },
         },
       },
     });
 
+    const website = domainMatch?.website;
     if (!website) return null;
+    if (!website.isActive) return null;
 
     const activeCreation = website.sites[0];
     if (!activeCreation) return null;
