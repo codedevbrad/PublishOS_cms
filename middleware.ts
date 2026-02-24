@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
+import type { NextFetchEvent, NextMiddleware } from "next/server";
 import { authConfig } from "./auth.config";
 
 const { auth } = NextAuth(authConfig);
@@ -14,14 +15,14 @@ function getHostname(req: NextRequest) {
   return req.headers.get("host") ?? "";
 }
 
-export default async function middleware(req: NextRequest) {
+export default async function middleware(req: NextRequest, event: NextFetchEvent) {
   const hostname = getHostname(req);
 
   if (APP_HOSTNAMES.has(hostname)) {
     if (req.nextUrl.pathname === "/") {
       return NextResponse.redirect(new URL("/build", req.url));
     }
-    return (auth as any)(req);
+    return (auth as NextMiddleware)(req, event);
   }
 
   const url = req.nextUrl.clone();
