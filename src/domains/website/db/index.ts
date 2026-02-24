@@ -2,7 +2,7 @@
 
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 export type ActionResult<T = void> =
   | { success: true; data?: T }
