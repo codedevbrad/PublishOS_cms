@@ -4,6 +4,11 @@ import { useState, useTransition } from "react";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/src/components/ui/popover";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -17,18 +22,6 @@ const TLD_OPTIONS = [
   { value: ".co.uk", label: ".co.uk" },
   { value: ".com", label: ".com" },
 ];
-
-function parseDomainUrl(domainUrl: string): { name: string; tld: string } {
-  for (const option of TLD_OPTIONS) {
-    if (option.value !== "none" && domainUrl.endsWith(option.value)) {
-      return {
-        name: domainUrl.slice(0, -option.value.length),
-        tld: option.value,
-      };
-    }
-  }
-  return { name: domainUrl, tld: "none" };
-}
 
 interface EditWebsiteFormProps {
   websiteId: string;
@@ -45,14 +38,16 @@ export function EditWebsiteForm({
   onSuccess,
   onCancel,
 }: EditWebsiteFormProps) {
-  const firstDomain = initialDomainNames[0] ?? "";
-  const parsed = parseDomainUrl(firstDomain);
   const [name, setName] = useState(initialName);
   const [domainNames, setDomainNames] = useState(initialDomainNames);
-  const [domainName, setDomainName] = useState(parsed.name);
-  const [tld, setTld] = useState(parsed.tld);
+  const [domainTab, setDomainTab] = useState<"manage" | "add">("manage");
+  const [isDomainPopoverOpen, setIsDomainPopoverOpen] = useState(false);
+  const [domainName, setDomainName] = useState("");
+  const [tld, setTld] = useState("none");
   const [error, setError] = useState("");
+  const [isSavingDomains, setIsSavingDomains] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const isBusy = isPending || isSavingDomains;
 
   const normalizeDomain = (value: string) =>
     value
@@ -62,7 +57,35 @@ export function EditWebsiteForm({
       .split("/")[0]
       .replace(/:\d+$/, "");
 
-  const handleAddDomain = () => {
+  const prepareDomains = (domains: string[]) =>
+    Array.from(new Set(domains.map((d) => normalizeDomain(d)).filter(Boolean)));
+
+  const persistDomains = async (nextDomains: string[]) => {
+    const preparedDomains = prepareDomains(nextDomains);
+    if (preparedDomains.length === 0) {
+      setError("At least one domain name is required");
+      return false;
+    }
+
+    setIsSavingDomains(true);
+    const result = await updateWebsite(
+      websiteId,
+      name.trim() || initialName,
+      preparedDomains
+    );
+    setIsSavingDomains(false);
+
+    if (!result.success) {
+      setError(result.error);
+      return false;
+    }
+
+    setDomainNames(preparedDomains);
+    setError("");
+    return true;
+  };
+
+  const handleAddDomain = async () => {
     const fullDomainUrl = `${domainName.trim()}${tld === "none" ? "" : tld}`;
     const normalized = normalizeDomain(fullDomainUrl);
 
@@ -76,17 +99,22 @@ export function EditWebsiteForm({
       return;
     }
 
-    setDomainNames((prev) => [...prev, normalized]);
+    const didSave = await persistDomains([...domainNames, normalized]);
+    if (!didSave) {
+      return;
+    }
+
     setDomainName("");
-    setError("");
+    setTld("none");
+    setDomainTab("manage");
   };
 
   const handleDomainChange = (index: number, value: string) => {
     setDomainNames((prev) => prev.map((domain, i) => (i === index ? value : domain)));
   };
 
-  const handleDeleteDomain = (index: number) => {
-    setDomainNames((prev) => prev.filter((_, i) => i !== index));
+  const handleDeleteDomain = async (index: number) => {
+    await persistDomains(domainNames.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -98,16 +126,7 @@ export function EditWebsiteForm({
       return;
     }
 
-    const draftDomain = normalizeDomain(
-      `${domainName.trim()}${tld === "none" ? "" : tld}`
-    );
-    const preparedDomains = Array.from(
-      new Set(
-        [...domainNames, draftDomain]
-          .map((d) => normalizeDomain(d))
-          .filter(Boolean)
-      )
-    );
+    const preparedDomains = prepareDomains(domainNames);
     if (preparedDomains.length === 0) {
       setError("At least one domain name is required");
       return;
@@ -140,57 +159,137 @@ export function EditWebsiteForm({
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
-          disabled={isPending}
+          disabled={isBusy}
         />
       </div>
       <div className="space-y-2">
         <label className="text-sm font-medium">Domains *</label>
-        <div className="flex items-center gap-1">
-          <span className="text-sm text-muted-foreground">https://</span>
-          <Input
-            type="text"
-            value={domainName}
-            onChange={(e) => setDomainName(e.target.value)}
-            required
-            disabled={isPending}
-            placeholder="example"
-            className="flex-1"
-          />
-          <Select value={tld} onValueChange={setTld} disabled={isPending}>
-            <SelectTrigger className="w-[110px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {TLD_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button type="button" variant="outline" onClick={handleAddDomain} disabled={isPending}>
-            Add
-          </Button>
-        </div>
-        <div className="space-y-2">
-          {domainNames.map((domain, index) => (
-            <div key={`${domain}-${index}`} className="flex items-center gap-2">
-              <Input
-                type="text"
-                value={domain}
-                onChange={(e) => handleDomainChange(index, e.target.value)}
-                disabled={isPending}
-              />
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={() => handleDeleteDomain(index)}
-                disabled={isPending}
-              >
-                Delete
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            {domainNames.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No domains added yet.</p>
+            ) : (
+              domainNames.map((domain, index) => (
+                <span
+                  key={`${domain}-${index}`}
+                  className="rounded-md border bg-muted px-2 py-1 text-sm"
+                >
+                  {domain}
+                </span>
+              ))
+            )}
+          </div>
+          <Popover
+            open={isDomainPopoverOpen}
+            onOpenChange={(open) => {
+              setIsDomainPopoverOpen(open);
+              if (!open) {
+                setDomainTab("manage");
+              }
+            }}
+          >
+            <PopoverTrigger asChild>
+              <Button type="button" variant="outline" disabled={isBusy}>
+                Manage domains
               </Button>
-            </div>
-          ))}
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-[520px] space-y-3">
+              <div className="grid grid-cols-2 gap-1 rounded-md border bg-muted p-1">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={domainTab === "manage" ? "secondary" : "ghost"}
+                  onClick={() => setDomainTab("manage")}
+                  disabled={isBusy}
+                >
+                  Manage
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={domainTab === "add" ? "secondary" : "ghost"}
+                  onClick={() => setDomainTab("add")}
+                  disabled={isBusy}
+                >
+                  Add domain
+                </Button>
+              </div>
+
+              {domainTab === "manage" ? (
+                <div className="space-y-2">
+                  {domainNames.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No domains to manage.</p>
+                  ) : (
+                    domainNames.map((domain, index) => (
+                      <div key={`${domain}-${index}`} className="flex items-center gap-2">
+                        <Input
+                          type="text"
+                          value={domain}
+                          onChange={(e) => handleDomainChange(index, e.target.value)}
+                          disabled={isBusy}
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          onClick={() => void handleDeleteDomain(index)}
+                          disabled={isBusy}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    ))
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setDomainTab("add")}
+                    disabled={isBusy}
+                  >
+                    Add domain
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm text-muted-foreground">https://</span>
+                    <Input
+                      type="text"
+                      value={domainName}
+                      onChange={(e) => setDomainName(e.target.value)}
+                      disabled={isBusy}
+                      placeholder="example"
+                      className="flex-1"
+                    />
+                    <Select value={tld} onValueChange={setTld} disabled={isBusy}>
+                      <SelectTrigger className="w-[110px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TLD_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setDomainTab("manage")}
+                      disabled={isBusy}
+                    >
+                      Back to manage
+                    </Button>
+                    <Button type="button" onClick={() => void handleAddDomain()} disabled={isBusy}>
+                      Add
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
       {error && (
@@ -199,10 +298,10 @@ export function EditWebsiteForm({
         </div>
       )}
       <div className="flex gap-2">
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" disabled={isBusy}>
           {isPending ? "Saving..." : "Save"}
         </Button>
-        <Button type="button" variant="outline" onClick={onCancel} disabled={isPending}>
+        <Button type="button" variant="outline" onClick={onCancel} disabled={isBusy}>
           Cancel
         </Button>
       </div>
