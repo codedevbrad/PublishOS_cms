@@ -3,7 +3,6 @@ import React, { useState } from 'react'
 import { Plus, Trash2, Edit2, ChevronDown, ChevronUp, Palette } from 'lucide-react'
 import {
   BLOCK_TYPES,
-  GLOBAL_BLOCK_TYPES,
 } from '../../blocks/blocks'
 import {
   Drawer,
@@ -14,8 +13,8 @@ import {
   DrawerTrigger,
   DrawerClose,
 } from '@/src/components/ui/drawer'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select'
 import { ThemeEditor } from './ThemeEditor'
-import { GlobalEditorDrawer } from '../../_components/GlobalEditorDrawer'
 import { Save, X } from 'lucide-react'
 import type { GlobalBlock, Page, ThemeColors } from '../../types'
 
@@ -23,6 +22,7 @@ interface SidebarProps {
   globalBlocks: GlobalBlock[]
   pages: Page[]
   activePageId: string
+  globalHeaderNavLayout: 'stacked' | 'inline'
   newPageName: string
   draggedBlockType: string | null
   openGlobalEditorId: string | null
@@ -35,6 +35,7 @@ interface SidebarProps {
   onDeletePage: (pageId: string) => void
   onSetNewPageName: (name: string) => void
   onCreateNewPage: () => void
+  onHeaderNavLayoutChange: (layout: 'stacked' | 'inline') => void
   onSetOpenGlobalEditorId: (id: string | null) => void
   onDragStart: (e: React.DragEvent, type: string, blockId?: string) => void
   onDragEnd: () => void
@@ -46,18 +47,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
   globalBlocks,
   pages,
   activePageId,
+  globalHeaderNavLayout,
   newPageName,
   draggedBlockType,
-  openGlobalEditorId,
   themeColors,
-  onAddGlobalBlock,
-  onUpdateGlobalBlock,
-  onDeleteGlobalBlock,
   onSetActivePageId,
   onDeletePage,
   onSetNewPageName,
   onCreateNewPage,
-  onSetOpenGlobalEditorId,
+  onHeaderNavLayoutChange,
   onDragStart,
   onDragEnd,
   onAddBlockFromSidebar,
@@ -147,58 +145,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Global Blocks Section */}
-      <div className="p-4 border-b border-gray-200 flex-shrink-0">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Global Elements</h3>
-        <div className="space-y-2">
-          {GLOBAL_BLOCK_TYPES.map((blockType) => {
-            const existingBlock = globalBlocks.find((b) => b.type === blockType.type && b.isActive)
-            return (
-              <div key={blockType.type} className="flex items-center justify-between">
-                <div
-                  onClick={() => onAddGlobalBlock(blockType.type)}
-                  className={`flex items-center space-x-3 p-2 rounded-lg border cursor-pointer hover:shadow-md transition-all flex-1 ${
-                    existingBlock ? 'bg-blue-50 border-blue-200' : 'bg-white'
-                  }`}
-                >
-                  <div className={`p-1 rounded ${blockType.color}`}>
-                    <blockType.icon className="w-3 h-3 text-white" />
-                  </div>
-                  <span className="text-sm font-medium text-gray-700">{blockType.name}</span>
-                </div>
-
-                {existingBlock && (
-                  <div className="flex ml-2 space-x-1">
-                    {/* EDIT (Drawer) */}
-                    <GlobalEditorDrawer
-                      block={existingBlock}
-                      title={`Edit ${blockType.name}`}
-                      isOpen={openGlobalEditorId === existingBlock.id}
-                      onOpenChange={(open) => onSetOpenGlobalEditorId(open ? existingBlock.id : null)}
-                      onUpdate={(content) => onUpdateGlobalBlock(existingBlock.id, content)}
-                      onClose={() => onSetOpenGlobalEditorId(null)}
-                      triggerClassName={`p-1 text-xs hover:text-blue-600 ${
-                        openGlobalEditorId === existingBlock.id ? 'text-blue-600' : 'text-gray-400'
-                      }`}
-                      themeColors={themeColors}
-                    />
-
-                    {/* DELETE */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onDeleteGlobalBlock(existingBlock.id)
-                      }}
-                      className="p-1 text-xs text-gray-400 hover:text-red-600"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
+      {/* Header / Nav Layout Section */}
+      <div className="p-4 border-b border-gray-200">
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">Header / Nav Layout</h3>
+        <Select
+          value={globalHeaderNavLayout}
+          onValueChange={(value) => onHeaderNavLayoutChange(value as 'stacked' | 'inline')}
+        >
+          <SelectTrigger className="w-full bg-white" aria-label="Select header and navigation layout">
+            <SelectValue placeholder="Select layout" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="stacked">Stacked</SelectItem>
+            <SelectItem value="inline">Inline</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Pages Section */}
@@ -219,8 +180,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="space-y-2">
               {pages.map((page) => {
                 const navBlock = globalBlocks.find((b) => b.type === 'nav' && b.isActive)
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const isInNav = navBlock?.content?.autoSync || navBlock?.content?.items?.some((item: any) => item.pageId === page.id)
+                const headerNavBlock = globalBlocks.find((b) => b.type === 'headerNav' && b.isActive)
+                const isInNav =
+                  navBlock?.content?.autoSync ||
+                  navBlock?.content?.items?.some((item: { pageId?: string | null }) => item.pageId === page.id) ||
+                  headerNavBlock?.content?.autoSync ||
+                  headerNavBlock?.content?.items?.some((item: { pageId?: string | null }) => item.pageId === page.id)
 
                 return (
                   <div key={page.id} className="flex items-center justify-between">
@@ -258,7 +223,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </button>
             </div>
 
-            {globalBlocks.find((b) => b.type === 'nav' && b.isActive)?.content?.autoSync && (
+            {(globalBlocks.find((b) => b.type === 'nav' && b.isActive)?.content?.autoSync ||
+              globalBlocks.find((b) => b.type === 'headerNav' && b.isActive)?.content?.autoSync) && (
               <div className="mt-3 p-2 bg-blue-50 rounded text-xs text-blue-700">
                 <div className="flex items-center space-x-1">
                   <div className="w-2 h-2 bg-blue-500 rounded-full"></div>

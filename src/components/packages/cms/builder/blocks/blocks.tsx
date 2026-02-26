@@ -24,6 +24,7 @@ const ServicesBlockEdit = dynamic(() => import('../../_shared/blocks/services/bl
 
 import { HeaderBlock, HeaderBlockEditor } from '../globalblocks/header/headerBlock';
 import { NavigationBlock, NavigationBlockEditor } from '../globalblocks/navigation/navigationBlock';
+import { HeaderNavBlock, HeaderNavBlockEditor } from '../globalblocks/headernav/headerNavBlock';
 
 import type { ContentBlock, GlobalBlock, Page, ThemeColors } from '../types';
 
@@ -74,6 +75,7 @@ export const BLOCK_VARIANTS: Record<string, Array<{ id: string; name: string; de
 export const GLOBAL_BLOCK_TYPES = [
   { type: 'header', name: 'Header', icon: Layout, color: 'bg-indigo-500' },
   { type: 'nav', name: 'Navigation', icon: Layout, color: 'bg-cyan-500' },
+  { type: 'headerNav', name: 'Header + Navigation', icon: Layout, color: 'bg-violet-500' },
 ];
 
 export const VIEWPORT_CONFIGS: Record<ViewportType, ViewportConfig> = {
@@ -107,6 +109,40 @@ export const getDefaultBlockContent = (type: string, variant?: string, pages?: P
         hoverColor: '#3b82f6',
         alignment: 'left',
         autoSync: true
+      };
+    case 'headerNav':
+      const headerNavItems = pages ? pages.map(page => ({
+        label: page.name,
+        link: `/${page.slug}`,
+        pageId: page.id
+      })) : [
+        { label: 'Home', link: '/', pageId: null }
+      ];
+
+      return {
+        title: 'Your Site Title',
+        layout: 'inline',
+        autoSync: true,
+        items: headerNavItems,
+        styles: {
+          header: {
+            backgroundColor: 'background',
+            textColor: 'foreground',
+            height: 'h-16',
+          },
+          nav: {
+            backgroundColor: 'background',
+            textColor: 'foreground',
+            hoverColor: 'accent',
+            alignment: 'right',
+          },
+          inline: {
+            gap: 'gap-8',
+          },
+          stacked: {
+            divider: true,
+          },
+        },
       };
     case 'hero':
       return {
@@ -245,6 +281,9 @@ export const BlockRenderer: React.FC<{
     
     case 'nav':
       return <NavigationBlock content={content} themeColors={themeColors} />;
+
+    case 'headerNav':
+      return <HeaderNavBlock content={content} themeColors={themeColors} />;
     
     case 'hero':
       return <HeroBlock variant={content.variant || 'style_a'} content={content} themeColors={themeColors} />;
@@ -290,6 +329,8 @@ const BlockEditor: React.FC<{ type: string; content: any; onUpdate: (content: an
       return <HeaderBlockEditor content={content} onUpdate={onUpdate} themeColors={themeColors} />;
     case 'nav':
       return <NavigationBlockEditor content={content} onUpdate={onUpdate} themeColors={themeColors} />;
+    case 'headerNav':
+      return <HeaderNavBlockEditor content={content} onUpdate={onUpdate} themeColors={themeColors} />;
     case 'hero':
       return <HeroBlockEdit content={content} onUpdate={onUpdate} themeColors={themeColors} />;
     case 'about':

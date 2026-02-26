@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/src/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select'
 
 import {
   BLOCK_TYPES,
@@ -46,9 +47,26 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
     ]
   )
 
-  const [globalBlocks, setGlobalBlocks] = useState<GlobalBlock[]>(
-    initialSiteData?.globalBlocks || []
-  )
+  const [globalBlocks, setGlobalBlocks] = useState<GlobalBlock[]>(() => {
+    if (initialSiteData?.globalBlocks && initialSiteData.globalBlocks.length > 0) {
+      return initialSiteData.globalBlocks
+    }
+
+    return [
+      {
+        id: 'global-header-default',
+        type: 'header',
+        content: getDefaultBlockContent('header', undefined, pages),
+        isActive: true,
+      },
+      {
+        id: 'global-nav-default',
+        type: 'nav',
+        content: getDefaultBlockContent('nav', undefined, pages),
+        isActive: true,
+      },
+    ]
+  })
 
   const [themeColors, setThemeColors] = useState<ThemeColors>(
     initialSiteData?.themeColors || {
@@ -92,8 +110,10 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
   const [isDataViewerOpen, setIsDataViewerOpen] = useState<boolean>(false)
 
   const activePage = pages.find((p) => p.id === activePageId)
+  const activeHeaderNav = globalBlocks.find((b) => b.type === 'headerNav' && b.isActive)
   const activeHeader = globalBlocks.find((b) => b.type === 'header' && b.isActive)
   const activeNav = globalBlocks.find((b) => b.type === 'nav' && b.isActive)
+  const globalHeaderNavLayout = activeHeaderNav?.content?.layout === 'inline' ? 'inline' : 'stacked'
 
   const handleSave = useCallback(async () => {
     const savePayload = {
@@ -262,8 +282,17 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
 
   const addGlobalBlock = (blockType: string) => {
     const existingBlock = globalBlocks.find((b) => b.type === blockType)
+    const isMixedMode = blockType === 'headerNav'
+
     if (existingBlock) {
-      setGlobalBlocks((prev) => prev.map((b) => (b.type === blockType ? { ...b, isActive: true } : b)))
+      setGlobalBlocks((prev) =>
+        prev.map((b) => {
+          if (b.type === blockType) return { ...b, isActive: true }
+          if (isMixedMode && (b.type === 'header' || b.type === 'nav')) return { ...b, isActive: false }
+          if (!isMixedMode && b.type === 'headerNav') return { ...b, isActive: false }
+          return b
+        })
+      )
     } else {
       const newBlock: GlobalBlock = {
         id: `global-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -271,8 +300,73 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
         content: getDefaultBlockContent(blockType, undefined, pages),
         isActive: true,
       }
-      setGlobalBlocks((prev) => [...prev, newBlock])
+      setGlobalBlocks((prev) => {
+        const next = prev.map((b) => {
+          if (isMixedMode && (b.type === 'header' || b.type === 'nav')) return { ...b, isActive: false }
+          if (!isMixedMode && b.type === 'headerNav') return { ...b, isActive: false }
+          return b
+        })
+        return [...next, newBlock]
+      })
     }
+  }
+
+  const handleHeaderNavLayoutChange = (layout: 'stacked' | 'inline') => {
+    if (activeHeaderNav) {
+      updateGlobalBlock(activeHeaderNav.id, {
+        ...activeHeaderNav.content,
+        layout,
+      })
+      return
+    }
+
+    const navItems =
+      activeNav?.content?.items ||
+      pages.map((page) => ({
+        label: page.name,
+        link: `/${page.slug}`,
+        pageId: page.id,
+      }))
+
+    const mergedBlock: GlobalBlock = {
+      id: `global-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      type: 'headerNav',
+      isActive: true,
+      content: {
+        title: activeHeader?.content?.title || 'Your Site Title',
+        layout,
+        autoSync: activeNav?.content?.autoSync ?? true,
+        items: navItems,
+        styles: {
+          header: {
+            backgroundColor: activeHeader?.content?.backgroundColor ?? 'background',
+            textColor: activeHeader?.content?.textColor ?? 'foreground',
+            height: activeHeader?.content?.height ?? 'h-16',
+          },
+          nav: {
+            backgroundColor: activeNav?.content?.backgroundColor ?? 'background',
+            textColor: activeNav?.content?.textColor ?? 'foreground',
+            hoverColor: activeNav?.content?.hoverColor ?? 'accent',
+            alignment: activeNav?.content?.alignment ?? 'right',
+          },
+          inline: {
+            gap: 'gap-8',
+          },
+          stacked: {
+            divider: true,
+          },
+        },
+      },
+    }
+
+    setGlobalBlocks((prev) => [
+      ...prev.map((b) =>
+        b.type === 'header' || b.type === 'nav'
+          ? { ...b, isActive: false }
+          : b
+      ),
+      mergedBlock,
+    ])
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -286,15 +380,15 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
   }
 
   const syncNavigationWithPages = useCallback(() => {
-    const navBlock = globalBlocks.find((b) => b.type === 'nav' && b.isActive)
-    if (navBlock && navBlock.content?.autoSync) {
-      const newNavItems = pages.map((page) => ({
-        label: page.name,
-        link: `/${page.slug}`,
-        pageId: page.id,
-      }))
+    const newNavItems = pages.map((page) => ({
+      label: page.name,
+      link: `/${page.slug}`,
+      pageId: page.id,
+    }))
 
-      const currentNavItems = navBlock.content.items || []
+    const syncBlockItems = (block: GlobalBlock | undefined) => {
+      if (!block || !block.content?.autoSync) return
+      const currentNavItems = block.content.items || []
       const hasChanged =
         newNavItems.length !== currentNavItems.length ||
         newNavItems.some(
@@ -306,14 +400,17 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
         )
 
       if (hasChanged) {
-        updateGlobalBlock(navBlock.id, {
-          ...navBlock.content,
+        updateGlobalBlock(block.id, {
+          ...block.content,
           items: newNavItems,
         })
       }
     }
+
+    syncBlockItems(globalBlocks.find((b) => b.type === 'nav' && b.isActive))
+    syncBlockItems(globalBlocks.find((b) => b.type === 'headerNav' && b.isActive))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pages])
+  }, [pages, globalBlocks])
 
   React.useEffect(() => {
     syncNavigationWithPages()
@@ -398,6 +495,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
         globalBlocks={globalBlocks}
         pages={pages}
         activePageId={activePageId}
+        globalHeaderNavLayout={globalHeaderNavLayout}
         newPageName={newPageName}
         draggedBlockType={draggedBlockType}
         openGlobalEditorId={openGlobalEditorId}
@@ -409,6 +507,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
         onDeletePage={deletePage}
         onSetNewPageName={setNewPageName}
         onCreateNewPage={createNewPage}
+        onHeaderNavLayoutChange={handleHeaderNavLayoutChange}
         onSetOpenGlobalEditorId={setOpenGlobalEditorId}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
@@ -435,6 +534,20 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
         onViewportChange={handleViewportChange}
         onSizeChange={handleSizeChange}
         title={activePage?.name || 'Page Preview'}
+        titleAddon={
+          <Select value={activePageId} onValueChange={setActivePageId}>
+            <SelectTrigger className="min-w-[200px] bg-white" aria-label="Select page to build">
+              <SelectValue placeholder="Select page" />
+            </SelectTrigger>
+            <SelectContent>
+              {pages.map((page) => (
+                <SelectItem key={page.id} value={page.id}>
+                  {page.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        }
         toolbarRight={
           <div className="flex items-center space-x-2">
             <button
@@ -479,6 +592,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
       >
         <PageRenderer
           activePage={activePage}
+          activeHeaderNav={activeHeaderNav}
           activeHeader={activeHeader}
           activeNav={activeNav}
           isPreviewMode={isPreviewMode}

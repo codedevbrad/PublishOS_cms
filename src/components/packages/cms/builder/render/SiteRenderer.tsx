@@ -18,17 +18,24 @@ export const SiteRenderer: React.FC<SiteRendererProps> = ({
   themeColors,
   children,
 }) => {
+  const activeHeaderNav = globalBlocks.find((b) => b.type === 'headerNav' && b.isActive)
   const activeHeader = globalBlocks.find((b) => b.type === 'header' && b.isActive)
   const activeNav = globalBlocks.find((b) => b.type === 'nav' && b.isActive)
 
   return (
     <SiteModeProvider value={true}>
       <div>
-        {activeHeader && (
-          <BlockRenderer block={activeHeader} isEditing={false} onUpdate={() => {}} themeColors={themeColors} />
-        )}
-        {activeNav && (
-          <BlockRenderer block={activeNav} isEditing={false} onUpdate={() => {}} themeColors={themeColors} />
+        {activeHeaderNav ? (
+          <BlockRenderer block={activeHeaderNav} isEditing={false} onUpdate={() => {}} themeColors={themeColors} />
+        ) : (
+          <>
+            {activeHeader && (
+              <BlockRenderer block={activeHeader} isEditing={false} onUpdate={() => {}} themeColors={themeColors} />
+            )}
+            {activeNav && (
+              <BlockRenderer block={activeNav} isEditing={false} onUpdate={() => {}} themeColors={themeColors} />
+            )}
+          </>
         )}
         {children
           ? children

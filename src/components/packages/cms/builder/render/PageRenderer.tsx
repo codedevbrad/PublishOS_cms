@@ -8,6 +8,7 @@ import type { GlobalBlock, Page, ThemeColors } from '../types'
 
 interface PageRendererProps {
   activePage: Page | undefined
+  activeHeaderNav: GlobalBlock | undefined
   activeHeader: GlobalBlock | undefined
   activeNav: GlobalBlock | undefined
   isPreviewMode: boolean
@@ -33,6 +34,7 @@ interface PageRendererProps {
 
 export const PageRenderer: React.FC<PageRendererProps> = ({
   activePage,
+  activeHeaderNav,
   activeHeader,
   activeNav,
   isPreviewMode,
@@ -60,56 +62,83 @@ export const PageRenderer: React.FC<PageRendererProps> = ({
 
   return (
     <div className="relative">
-      {/* Global Header */}
-      {activeHeader && (
+      {/* Mixed Global Header + Navigation */}
+      {activeHeaderNav ? (
         <div className="relative group">
           {!isPreviewMode && (
             <div className="absolute top-2 left-2 z-10 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <div className="bg-white rounded shadow-lg border flex">
                 <GlobalEditorDrawer
-                  block={activeHeader}
-                  title="Edit Header"
-                  isOpen={isEditingHeader}
-                  onOpenChange={(open) => setIsEditingHeader(open)}
-                  onUpdate={(content) => onUpdateGlobalBlock(activeHeader.id, content)}
-                  onClose={() => setIsEditingHeader(false)}
-                  themeColors={themeColors}
-                />
-
-                <button onClick={() => onDeleteGlobalBlock(activeHeader.id)} className="p-2 text-gray-400 hover:text-red-600">
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
-          <BlockRenderer block={activeHeader} isEditing={false} onUpdate={() => {}} themeColors={themeColors} />
-        </div>
-      )}
-
-      {/* Global Navigation */}
-      {activeNav && (
-        <div className="relative group">
-          {!isPreviewMode && (
-            <div className="absolute top-2 right-2 z-10 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <div className="bg-white rounded shadow-lg border flex">
-                <GlobalEditorDrawer
-                  block={activeNav}
-                  title="Edit Navigation"
-                  isOpen={openGlobalEditorId === activeNav.id}
-                  onOpenChange={(open) => onSetOpenGlobalEditorId(open ? activeNav.id : null)}
-                  onUpdate={(content) => onUpdateGlobalBlock(activeNav.id, content)}
+                  block={activeHeaderNav}
+                  title="Edit Header + Navigation"
+                  isOpen={openGlobalEditorId === activeHeaderNav.id}
+                  onOpenChange={(open) => onSetOpenGlobalEditorId(open ? activeHeaderNav.id : null)}
+                  onUpdate={(content) => onUpdateGlobalBlock(activeHeaderNav.id, content)}
                   onClose={() => onSetOpenGlobalEditorId(null)}
                   themeColors={themeColors}
                 />
-
-                <button onClick={() => onDeleteGlobalBlock(activeNav.id)} className="p-2 text-gray-400 hover:text-red-600">
+                <button onClick={() => onDeleteGlobalBlock(activeHeaderNav.id)} className="p-2 text-gray-400 hover:text-red-600">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
           )}
-          <BlockRenderer block={activeNav} isEditing={false} onUpdate={() => {}} themeColors={themeColors} />
+          <BlockRenderer block={activeHeaderNav} isEditing={false} onUpdate={() => {}} themeColors={themeColors} />
         </div>
+      ) : (
+        <>
+          {/* Separate Global Header */}
+          {activeHeader && (
+            <div className="relative group">
+              {!isPreviewMode && (
+                <div className="absolute top-2 left-2 z-10 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="bg-white rounded shadow-lg border flex">
+                    <GlobalEditorDrawer
+                      block={activeHeader}
+                      title="Edit Header"
+                      isOpen={isEditingHeader}
+                      onOpenChange={(open) => setIsEditingHeader(open)}
+                      onUpdate={(content) => onUpdateGlobalBlock(activeHeader.id, content)}
+                      onClose={() => setIsEditingHeader(false)}
+                      themeColors={themeColors}
+                    />
+
+                    <button onClick={() => onDeleteGlobalBlock(activeHeader.id)} className="p-2 text-gray-400 hover:text-red-600">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+              <BlockRenderer block={activeHeader} isEditing={false} onUpdate={() => {}} themeColors={themeColors} />
+            </div>
+          )}
+
+          {/* Separate Global Navigation */}
+          {activeNav && (
+            <div className="relative group">
+              {!isPreviewMode && (
+                <div className="absolute top-2 right-2 z-10 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="bg-white rounded shadow-lg border flex">
+                    <GlobalEditorDrawer
+                      block={activeNav}
+                      title="Edit Navigation"
+                      isOpen={openGlobalEditorId === activeNav.id}
+                      onOpenChange={(open) => onSetOpenGlobalEditorId(open ? activeNav.id : null)}
+                      onUpdate={(content) => onUpdateGlobalBlock(activeNav.id, content)}
+                      onClose={() => onSetOpenGlobalEditorId(null)}
+                      themeColors={themeColors}
+                    />
+
+                    <button onClick={() => onDeleteGlobalBlock(activeNav.id)} className="p-2 text-gray-400 hover:text-red-600">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+              <BlockRenderer block={activeNav} isEditing={false} onUpdate={() => {}} themeColors={themeColors} />
+            </div>
+          )}
+        </>
       )}
 
       {/* Page Content */}

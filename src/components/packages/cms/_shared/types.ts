@@ -21,7 +21,7 @@ export interface ContentBlock {
 
 export interface GlobalBlock {
   id: string
-  type: 'header' | 'nav'
+  type: 'header' | 'nav' | 'headerNav'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   content: any
   isActive: boolean

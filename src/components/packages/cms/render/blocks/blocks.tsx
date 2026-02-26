@@ -14,6 +14,7 @@ const TeamBlock = dynamic(() => import('../../_shared/blocks/team/block.team.ren
 
 import { HeaderBlock } from '../globalblocks/header/headerBlock'
 import { NavigationBlock } from '../globalblocks/navigation/navigationBlock'
+import { HeaderNavBlock } from '../globalblocks/headernav/headerNavBlock'
 
 import type { ContentBlock, GlobalBlock, ThemeColors } from '../types'
 
@@ -29,6 +30,9 @@ export const BlockRenderer: React.FC<{
 
     case 'nav':
       return <NavigationBlock content={content} themeColors={themeColors} />
+
+    case 'headerNav':
+      return <HeaderNavBlock content={content} themeColors={themeColors} />
 
     case 'hero':
       return <HeroBlock variant={content.variant || 'style_a'} content={content} themeColors={themeColors} />
