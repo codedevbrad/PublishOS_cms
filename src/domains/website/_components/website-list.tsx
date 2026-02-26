@@ -47,6 +47,14 @@ export function WebsiteList({ domainId, organisationId }: WebsiteListProps) {
     });
   };
 
+  const normalizeDomain = (value: string) =>
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/^https?:\/\//, "")
+      .split("/")[0]
+      .replace(/:\d+$/, "");
+
   if (isLoading) {
     return <div className="text-muted-foreground">Loading websites...</div>;
   }
@@ -113,6 +121,12 @@ export function WebsiteList({ domainId, organisationId }: WebsiteListProps) {
                 websiteId={website.id}
                 initialName={website.name}
                 initialDomainNames={website.domainNames.map((domainName) => domainName.name)}
+                initialDomainVerifiedMap={Object.fromEntries(
+                  website.domainNames.map((domainName) => [
+                    normalizeDomain(domainName.name),
+                    Boolean(domainName.verified),
+                  ])
+                )}
                 onSuccess={() => {
                   setEditingWebsiteId(null);
                   mutate();
@@ -136,8 +150,14 @@ export function WebsiteList({ domainId, organisationId }: WebsiteListProps) {
                   </div>
                   <div className="mt-1 space-y-1">
                     {website.domainNames.map((domainName) => (
-                      <p key={domainName.id} className="text-sm text-muted-foreground">
-                        https://{domainName.name}
+                      <p key={domainName.id} className="text-sm text-muted-foreground flex items-center gap-2">
+                        <span
+                          className={`inline-block h-2.5 w-2.5 rounded-full animate-pulse ${
+                            domainName.verified ? "bg-blue-500" : "bg-red-500"
+                          }`}
+                          title={domainName.verified ? "Verified on Vercel" : "Not verified on Vercel"}
+                        />
+                        <span>https://{domainName.name}</span>
                       </p>
                     ))}
                     {website.domainNames.length === 0 && (

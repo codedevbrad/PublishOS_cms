@@ -3,10 +3,140 @@
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
 import { Prisma } from "@prisma/client";
+import {
+  addDomainToVercelProject,
+  getVercelProjectDomains,
+  removeDomainFromVercelProject,
+  verifyVercelProjectDomainConfiguration,
+} from "@/src/services/vercel/domains";
 
 export type ActionResult<T = void> =
   | { success: true; data?: T }
   | { success: false; error: string };
+
+function isLocalDevelopmentHost(domain: string) {
+  const normalized = normalizeHostOrDomain(domain);
+  return (
+    normalized === "localhost" ||
+    normalized.endsWith(".localhost") ||
+    normalized === "127.0.0.1" ||
+    normalized === "::1"
+  );
+}
+
+async function syncDomainsToVercel(domains: string[]): Promise<ActionResult> {
+  try {
+    for (const domain of domains) {
+      if (isLocalDevelopmentHost(domain)) {
+        console.log("[website:syncDomainsToVercel] skipping local domain", { domain });
+        continue;
+      }
+      const result = await addDomainToVercelProject(domain);
+      if (!result.verified) {
+        return {
+          success: false,
+          error: `Domain ${domain} added to Vercel but is not verified yet. Configure DNS and retry.`,
+        };
+      }
+    }
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to add domain to Vercel",
+    };
+  }
+}
+
+async function removeDomainsFromVercel(domains: string[]): Promise<ActionResult> {
+  try {
+    for (const domain of domains) {
+      if (isLocalDevelopmentHost(domain)) {
+        console.log("[website:removeDomainsFromVercel] skipping local domain", { domain });
+        continue;
+      }
+      await removeDomainFromVercelProject(domain);
+    }
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to remove domain from Vercel",
+    };
+  }
+}
+
+
+async function getVercelDomainVerificationMap(matchedDomains: string[]) {
+  try {
+    const projectDomains = await getVercelProjectDomains();
+    console.log("[website:getVercelDomainVerificationMap] projectDomains", projectDomains);
+    const projectDomainSet = new Set(
+      projectDomains.map((domain) => normalizeHostOrDomain(domain.name))
+    );
+    const uniqueMatchedDomains = Array.from(
+      new Set(matchedDomains.map((domain) => normalizeHostOrDomain(domain)).filter(Boolean))
+    );
+    console.log("[website:getVercelDomainVerificationMap] matchedDomains", {
+      input: matchedDomains,
+      normalizedUnique: uniqueMatchedDomains,
+    });
+    const verificationMap = new Map<string, boolean>();
+    for (const domain of uniqueMatchedDomains) {
+      if (isLocalDevelopmentHost(domain)) {
+        verificationMap.set(domain, true);
+        console.log("[website:getVercelDomainVerificationMap] local domain bypass", {
+          domain,
+          configured: true,
+        });
+        continue;
+      }
+
+      console.log("[website:getVercelDomainVerificationMap] checking-domain", {
+        domain,
+        presentOnProject: projectDomainSet.has(domain),
+      });
+      if (!projectDomainSet.has(domain)) {
+        verificationMap.set(domain, false);
+        console.log("[website:getVercelDomainVerificationMap] domain-not-on-project", {
+          domain,
+          configured: false,
+        });
+        continue;
+      }
+
+      try {
+        const isValidConfiguration = await verifyVercelProjectDomainConfiguration(domain);
+        verificationMap.set(domain, isValidConfiguration);
+        console.log("[website:getVercelDomainVerificationMap] domain-config-result", {
+          domain,
+          configured: isValidConfiguration,
+        });
+      } catch (verifyError) {
+        console.error("[website:getVercelDomainVerificationMap] verify failed", {
+          domain,
+          error: verifyError instanceof Error ? verifyError.message : verifyError,
+        });
+        verificationMap.set(domain, false);
+      }
+    }
+    console.log(
+      "[website:getVercelDomainVerificationMap] map",
+      Array.from(verificationMap.entries())
+    );
+    return verificationMap;
+  } catch (error) {
+    console.error("Error fetching Vercel domain list:", error);
+    return new Map<string, boolean>();
+  }
+}
+
 
 function normalizeHostOrDomain(value: string) {
   return value
@@ -59,7 +189,30 @@ export async function getWebsitesByDomain(domainId: string) {
       },
     });
 
-    return websites;
+    const matchedDomains = websites.flatMap((website) =>
+      website.domainNames.map((domainName) => domainName.name)
+    );
+    const vercelVerificationMap = await getVercelDomainVerificationMap(matchedDomains);
+    const withVerification = websites.map((website) => ({
+      ...website,
+      domainNames: website.domainNames.map((domainName) => ({
+        ...domainName,
+        verified: vercelVerificationMap.get(normalizeHostOrDomain(domainName.name)) ?? false,
+      })),
+    }));
+    console.log(
+      "[website:getWebsitesByDomain] matched-verification",
+      withVerification.map((website) => ({
+        websiteId: website.id,
+        websiteName: website.name,
+        domains: website.domainNames.map((domain) => ({
+          name: domain.name,
+          normalized: normalizeHostOrDomain(domain.name),
+          verified: domain.verified,
+        })),
+      }))
+    );
+    return withVerification;
   } catch (error) {
     console.error("Error fetching websites:", error);
     return null;
@@ -159,6 +312,11 @@ export async function createWebsite(
       return { success: false, error: "At least one valid domain name is required" };
     }
 
+    const vercelSyncResult = await syncDomainsToVercel(cleanedDomainNames);
+    if (!vercelSyncResult.success) {
+      return vercelSyncResult;
+    }
+
     const website = await prisma.website.create({
       data: {
         name: name.trim(),
@@ -198,7 +356,13 @@ export async function createWebsite(
       };
     }
     console.error("Error creating website:", error);
-    return { success: false, error: "Failed to create website" };
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to create website",
+    };
   }
 }
 
@@ -253,6 +417,26 @@ export async function updateWebsite(
       return { success: false, error: "At least one valid domain name is required" };
     }
 
+    const existingDomainSet = new Set(
+      website.domainNames.map((item) => normalizeHostOrDomain(item.name))
+    );
+    const addedDomains = cleanedDomainNames.filter(
+      (domainName) => !existingDomainSet.has(domainName)
+    );
+    const removedDomains = website.domainNames
+      .map((item) => normalizeHostOrDomain(item.name))
+      .filter((domainName) => !cleanedDomainNames.includes(domainName));
+
+    const vercelSyncResult = await syncDomainsToVercel(addedDomains);
+    if (!vercelSyncResult.success) {
+      return vercelSyncResult;
+    }
+
+    const vercelRemoveResult = await removeDomainsFromVercel(removedDomains);
+    if (!vercelRemoveResult.success) {
+      return vercelRemoveResult;
+    }
+
     await prisma.$transaction(async (tx) => {
       await tx.website.update({
         where: { id: websiteId },
@@ -285,7 +469,13 @@ export async function updateWebsite(
       };
     }
     console.error("Error updating website:", error);
-    return { success: false, error: "Failed to update website" };
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to update website",
+    };
   }
 }
 
