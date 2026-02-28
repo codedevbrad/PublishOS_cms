@@ -5,10 +5,10 @@ import { Button } from "@/src/components/ui/button";
 import { useState } from "react";
 import { CreateWebsiteForm } from "./create-website-form";
 import { EditWebsiteForm } from "./edit-website-form";
-import { deleteWebsite, toggleWebsiteActive } from "../db";
+import { deleteWebsite, refreshWebsiteDomainConfig, toggleWebsiteActive } from "../db";
 import { useTransition } from "react";
 import Link from "next/link";
-import { Edit, Trash2, Power, PowerOff, ExternalLink } from "lucide-react";
+import { Edit, Trash2, Power, PowerOff, ExternalLink, RefreshCw } from "lucide-react";
 
 interface WebsiteListProps {
   domainId: string;
@@ -19,6 +19,7 @@ export function WebsiteList({ domainId, organisationId }: WebsiteListProps) {
   const { data: websites, isLoading, error, mutate } = useWebsites(domainId);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingWebsiteId, setEditingWebsiteId] = useState<string | null>(null);
+  const [refreshingWebsiteId, setRefreshingWebsiteId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const handleDelete = async (websiteId: string) => {
@@ -43,6 +44,22 @@ export function WebsiteList({ domainId, organisationId }: WebsiteListProps) {
         await mutate();
       } else {
         alert(result.error);
+      }
+    });
+  };
+
+  const handleRefreshConfig = async (websiteId: string) => {
+    setRefreshingWebsiteId(websiteId);
+    startTransition(async () => {
+      try {
+        const result = await refreshWebsiteDomainConfig(websiteId);
+        if (result.success) {
+          await mutate();
+        } else {
+          alert(result.error);
+        }
+      } finally {
+        setRefreshingWebsiteId(null);
       }
     });
   };
@@ -109,8 +126,10 @@ export function WebsiteList({ domainId, organisationId }: WebsiteListProps) {
       )}
 
       <div className="space-y-2">
-        {websites.map((website) => (
-          <div
+        {websites.map((website) => {
+          const isRefreshing = refreshingWebsiteId === website.id;
+          return (
+            <div
             key={website.id}
             className={`border rounded-lg p-4 hover:bg-accent/50 transition-colors ${
               !website.isActive ? "opacity-60" : ""
@@ -152,8 +171,12 @@ export function WebsiteList({ domainId, organisationId }: WebsiteListProps) {
                     {website.domainNames.map((domainName) => (
                       <p key={domainName.id} className="text-sm text-muted-foreground flex items-center gap-2">
                         <span
-                          className={`inline-block h-2.5 w-2.5 rounded-full animate-pulse ${
-                            domainName.verified ? "bg-blue-500" : "bg-red-500"
+                          className={`inline-block h-2.5 w-2.5 rounded-full ${
+                            isRefreshing
+                              ? `border-2 border-t-transparent animate-spin ${
+                                  domainName.verified ? "border-blue-500" : "border-red-500"
+                                }`
+                              : `animate-pulse ${domainName.verified ? "bg-blue-500" : "bg-red-500"}`
                           }`}
                           title={domainName.verified ? "Verified on Vercel" : "Not verified on Vercel"}
                         />
@@ -196,6 +219,16 @@ export function WebsiteList({ domainId, organisationId }: WebsiteListProps) {
                     )}
                   </Button>
                   <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleRefreshConfig(website.id)}
+                    disabled={isPending}
+                    title={isRefreshing ? "Refreshing domain configuration" : "Refresh domain configuration"}
+                  >
+                    <RefreshCw className={`w-4 h-4 mr-1 ${isRefreshing ? "animate-spin" : ""}`} />
+                    {isRefreshing ? "Refreshing..." : "Refresh config"}
+                  </Button>
+                  <Button
                     variant="destructive"
                     size="sm"
                     onClick={() => handleDelete(website.id)}
@@ -207,7 +240,8 @@ export function WebsiteList({ domainId, organisationId }: WebsiteListProps) {
               </div>
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

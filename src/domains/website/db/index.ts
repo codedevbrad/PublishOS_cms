@@ -3,6 +3,7 @@
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
 import { Prisma } from "@prisma/client";
+import { revalidateTag, unstable_cache } from "next/cache";
 import {
   addDomainToVercelProject,
   getVercelProjectDomains,
@@ -13,6 +14,9 @@ import {
 export type ActionResult<T = void> =
   | { success: true; data?: T }
   | { success: false; error: string };
+
+const VERCEL_DOMAIN_CONFIG_CACHE_REVALIDATE_SECONDS = 60 * 3;
+const vercelDomainFreshMarker = new Map<string, number>();
 
 function isLocalDevelopmentHost(domain: string) {
   const normalized = normalizeHostOrDomain(domain);
@@ -73,8 +77,67 @@ async function removeDomainsFromVercel(domains: string[]): Promise<ActionResult>
 }
 
 
+function getVercelDomainConfigTag(domain: string) {
+  return `vercel-domain-config:${normalizeHostOrDomain(domain)}`;
+}
+
+function revalidateVercelDomainConfigCache(domains: string[]) {
+  const uniqueDomains = Array.from(
+    new Set(domains.map((domain) => normalizeHostOrDomain(domain)).filter(Boolean))
+  );
+
+  for (const domain of uniqueDomains) {
+    const tag = getVercelDomainConfigTag(domain);
+    revalidateTag(tag, "max");
+    console.log("[website:vercel-config-cache] revalidated", {
+      domain,
+      tag,
+    });
+  }
+}
+
+async function getCachedVercelDomainConfiguration(domain: string): Promise<boolean> {
+  const normalizedDomain = normalizeHostOrDomain(domain);
+  if (!normalizedDomain) return false;
+  if (isLocalDevelopmentHost(normalizedDomain)) return true;
+
+  const previousMarker = vercelDomainFreshMarker.get(normalizedDomain) ?? null;
+  const verifyCached = unstable_cache(
+    async () => {
+      const fetchedAt = Date.now();
+      vercelDomainFreshMarker.set(normalizedDomain, fetchedAt);
+      const configured = await verifyVercelProjectDomainConfiguration(normalizedDomain);
+      console.log("[website:vercel-config-cache] source=fresh", {
+        domain: normalizedDomain,
+        configured,
+        fetchedAt,
+      });
+      return configured;
+    },
+    ["vercel-domain-config", normalizedDomain],
+    {
+      revalidate: VERCEL_DOMAIN_CONFIG_CACHE_REVALIDATE_SECONDS,
+      tags: [getVercelDomainConfigTag(normalizedDomain)],
+    }
+  );
+
+  const configured = await verifyCached();
+  const latestMarker = vercelDomainFreshMarker.get(normalizedDomain) ?? null;
+  const source = latestMarker !== null && latestMarker !== previousMarker ? "fresh" : "cached";
+
+  console.log("[website:vercel-config-cache] source", {
+    source,
+    domain: normalizedDomain,
+    configured,
+    revalidateSeconds: VERCEL_DOMAIN_CONFIG_CACHE_REVALIDATE_SECONDS,
+  });
+
+  return configured;
+}
+
 async function getVercelDomainVerificationMap(matchedDomains: string[]) {
   try {
+    
     const projectDomains = await getVercelProjectDomains();
     console.log("[website:getVercelDomainVerificationMap] projectDomains", projectDomains);
     const projectDomainSet = new Set(
@@ -89,15 +152,6 @@ async function getVercelDomainVerificationMap(matchedDomains: string[]) {
     });
     const verificationMap = new Map<string, boolean>();
     for (const domain of uniqueMatchedDomains) {
-      if (isLocalDevelopmentHost(domain)) {
-        verificationMap.set(domain, true);
-        console.log("[website:getVercelDomainVerificationMap] local domain bypass", {
-          domain,
-          configured: true,
-        });
-        continue;
-      }
-
       console.log("[website:getVercelDomainVerificationMap] checking-domain", {
         domain,
         presentOnProject: projectDomainSet.has(domain),
@@ -112,7 +166,7 @@ async function getVercelDomainVerificationMap(matchedDomains: string[]) {
       }
 
       try {
-        const isValidConfiguration = await verifyVercelProjectDomainConfiguration(domain);
+        const isValidConfiguration = await getCachedVercelDomainConfiguration(domain);
         verificationMap.set(domain, isValidConfiguration);
         console.log("[website:getVercelDomainVerificationMap] domain-config-result", {
           domain,
@@ -457,6 +511,11 @@ export async function updateWebsite(
       });
     });
 
+    revalidateVercelDomainConfigCache([
+      ...website.domainNames.map((item) => item.name),
+      ...cleanedDomainNames,
+    ]);
+
     return { success: true };
   } catch (error) {
     if (
@@ -576,6 +635,7 @@ export async function deleteWebsite(websiteId: string): Promise<ActionResult> {
             organisation: true,
           },
         },
+        domainNames: true,
       },
     });
 
@@ -600,6 +660,8 @@ export async function deleteWebsite(websiteId: string): Promise<ActionResult> {
         where: { id: websiteId },
       });
     });
+
+    revalidateVercelDomainConfigCache(website.domainNames.map((item) => item.name));
 
     return { success: true };
   } catch (error) {
@@ -650,6 +712,46 @@ export async function toggleWebsiteActive(websiteId: string): Promise<ActionResu
   } catch (error) {
     console.error("Error toggling website active:", error);
     return { success: false, error: "Failed to toggle website status" };
+  }
+}
+
+export async function refreshWebsiteDomainConfig(websiteId: string): Promise<ActionResult> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const website = await prisma.website.findUnique({
+      where: { id: websiteId },
+      include: {
+        domain: {
+          include: {
+            organisation: true,
+          },
+        },
+        domainNames: true,
+      },
+    });
+
+    if (!website) {
+      return { success: false, error: "Website not found" };
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id as string },
+    });
+
+    if (!user || user.organisationId !== website.domain.organisationId) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    revalidateVercelDomainConfigCache(website.domainNames.map((item) => item.name));
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error refreshing website domain config:", error);
+    return { success: false, error: "Failed to refresh domain configuration" };
   }
 }
 
