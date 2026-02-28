@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { getWebsiteByHost } from "@/src/domains/website/db";
+import { getWebsiteByHost } from "@/src/app/site/domain/db";
 import { SiteRenderer } from "@/src/components/packages/cms/render/SiteRenderer";
 import type { ContentBlock, GlobalBlock, ThemeColors } from "@/src/components/packages/cms/render/types";
 

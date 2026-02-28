@@ -23,6 +23,7 @@ interface SidebarProps {
   pages: Page[]
   activePageId: string
   globalHeaderNavLayout: 'stacked' | 'inline'
+  globalHeaderNavResponsiveBreakpoint: 'sm' | 'md' | 'lg' | 'xl'
   newPageName: string
   draggedBlockType: string | null
   openGlobalEditorId: string | null
@@ -36,6 +37,7 @@ interface SidebarProps {
   onSetNewPageName: (name: string) => void
   onCreateNewPage: () => void
   onHeaderNavLayoutChange: (layout: 'stacked' | 'inline') => void
+  onHeaderNavResponsiveBreakpointChange: (breakpoint: 'sm' | 'md' | 'lg' | 'xl') => void
   onSetOpenGlobalEditorId: (id: string | null) => void
   onDragStart: (e: React.DragEvent, type: string, blockId?: string) => void
   onDragEnd: () => void
@@ -48,6 +50,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   pages,
   activePageId,
   globalHeaderNavLayout,
+  globalHeaderNavResponsiveBreakpoint,
   newPageName,
   draggedBlockType,
   themeColors,
@@ -56,6 +59,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSetNewPageName,
   onCreateNewPage,
   onHeaderNavLayoutChange,
+  onHeaderNavResponsiveBreakpointChange,
   onDragStart,
   onDragEnd,
   onAddBlockFromSidebar,
@@ -160,6 +164,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <SelectItem value="inline">Inline</SelectItem>
           </SelectContent>
         </Select>
+
+        <div className="mt-3">
+          <label className="block text-xs font-medium text-gray-600 mb-1">Responsive Breakpoint</label>
+          <Select
+            value={globalHeaderNavResponsiveBreakpoint}
+            onValueChange={(value) => onHeaderNavResponsiveBreakpointChange(value as 'sm' | 'md' | 'lg' | 'xl')}
+          >
+            <SelectTrigger className="w-full bg-white" aria-label="Select responsive breakpoint">
+              <SelectValue placeholder="Select breakpoint" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="sm">sm (640px)</SelectItem>
+              <SelectItem value="md">md (768px)</SelectItem>
+              <SelectItem value="lg">lg (1024px)</SelectItem>
+              <SelectItem value="xl">xl (1280px)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Pages Section */}

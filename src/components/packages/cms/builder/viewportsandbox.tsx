@@ -20,6 +20,7 @@ type ViewportSandboxProps = {
   onViewportChange: (key: ViewportKey, cfg: ViewportConfig) => void
   onSizeChange: (next: { width: number; height: number }) => void
   title?: string
+  showToolbarTitle?: boolean
   titleAddon?: React.ReactNode
   toolbarRight?: React.ReactNode
   className?: string
@@ -63,6 +64,7 @@ export default function ViewportSandbox({
   onViewportChange,
   onSizeChange,
   title = 'Preview',
+  showToolbarTitle = true,
   titleAddon,
   toolbarRight,
   className,
@@ -125,7 +127,7 @@ export default function ViewportSandbox({
       {/* Toolbar */}
       <div className="shrink-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
+          {showToolbarTitle && <h2 className="text-xl font-semibold text-gray-800">{title}</h2>}
           {titleAddon}
         </div>
 

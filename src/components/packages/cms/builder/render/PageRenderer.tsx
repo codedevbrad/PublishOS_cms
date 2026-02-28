@@ -30,6 +30,7 @@ interface PageRendererProps {
   onDragLeave: (e: React.DragEvent) => void
   onDrop: (e: React.DragEvent, targetIndex: number) => void
   themeColors?: ThemeColors
+  previewWidth: number
 }
 
 export const PageRenderer: React.FC<PageRendererProps> = ({
@@ -54,6 +55,7 @@ export const PageRenderer: React.FC<PageRendererProps> = ({
   onDragLeave,
   onDrop,
   themeColors,
+  previewWidth,
 }) => {
 
   const [ isEditingHeader, setIsEditingHeader ] = useState(false)
@@ -83,7 +85,7 @@ export const PageRenderer: React.FC<PageRendererProps> = ({
               </div>
             </div>
           )}
-          <BlockRenderer block={activeHeaderNav} isEditing={false} onUpdate={() => {}} themeColors={themeColors} />
+          <BlockRenderer block={activeHeaderNav} isEditing={false} onUpdate={() => {}} themeColors={themeColors} previewWidth={previewWidth} />
         </div>
       ) : (
         <>
@@ -109,7 +111,7 @@ export const PageRenderer: React.FC<PageRendererProps> = ({
                   </div>
                 </div>
               )}
-              <BlockRenderer block={activeHeader} isEditing={false} onUpdate={() => {}} themeColors={themeColors} />
+              <BlockRenderer block={activeHeader} isEditing={false} onUpdate={() => {}} themeColors={themeColors} previewWidth={previewWidth} />
             </div>
           )}
 
@@ -135,7 +137,7 @@ export const PageRenderer: React.FC<PageRendererProps> = ({
                   </div>
                 </div>
               )}
-              <BlockRenderer block={activeNav} isEditing={false} onUpdate={() => {}} themeColors={themeColors} />
+              <BlockRenderer block={activeNav} isEditing={false} onUpdate={() => {}} themeColors={themeColors} previewWidth={previewWidth} />
             </div>
           )}
         </>
@@ -210,6 +212,7 @@ export const PageRenderer: React.FC<PageRendererProps> = ({
                   isEditing={false}
                   onUpdate={() => {}}
                   themeColors={themeColors}
+                  previewWidth={previewWidth}
                 />
               </div>
 

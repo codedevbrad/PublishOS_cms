@@ -108,7 +108,8 @@ export const getDefaultBlockContent = (type: string, variant?: string, pages?: P
         textColor: '#374151',
         hoverColor: '#3b82f6',
         alignment: 'left',
-        autoSync: true
+        autoSync: true,
+        responsiveBreakpoint: 'md'
       };
     case 'headerNav':
       const headerNavItems = pages ? pages.map(page => ({
@@ -123,6 +124,7 @@ export const getDefaultBlockContent = (type: string, variant?: string, pages?: P
         title: 'Your Site Title',
         layout: 'inline',
         autoSync: true,
+        responsiveBreakpoint: 'md',
         items: headerNavItems,
         styles: {
           header: {
@@ -259,11 +261,13 @@ export const BlockRenderer: React.FC<{
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onUpdate: (content: any) => void;
   themeColors?: ThemeColors;
+  previewWidth?: number;
 }> = ({ 
   block, 
   isEditing, 
   onUpdate,
-  themeColors
+  themeColors,
+  previewWidth
 }) => {
   const { type, content } = block;
 
@@ -280,10 +284,10 @@ export const BlockRenderer: React.FC<{
       return <HeaderBlock content={content} themeColors={themeColors} />;
     
     case 'nav':
-      return <NavigationBlock content={content} themeColors={themeColors} />;
+      return <NavigationBlock content={content} themeColors={themeColors} previewWidth={previewWidth} />;
 
     case 'headerNav':
-      return <HeaderNavBlock content={content} themeColors={themeColors} />;
+      return <HeaderNavBlock content={content} themeColors={themeColors} previewWidth={previewWidth} />;
     
     case 'hero':
       return <HeroBlock variant={content.variant || 'style_a'} content={content} themeColors={themeColors} />;

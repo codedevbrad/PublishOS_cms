@@ -25,6 +25,7 @@ import { BlockChooser } from './render/BlockVariant'
 import type { ContentBlock, GlobalBlock, Page, ThemeColors, SiteData } from './types'
 
 type ViewportType = 'desktop' | 'tablet' | 'mobile'
+type HeaderNavBreakpoint = 'sm' | 'md' | 'lg' | 'xl'
 
 interface WebsiteBuilderProps {
   websiteId: string
@@ -114,6 +115,10 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
   const activeHeader = globalBlocks.find((b) => b.type === 'header' && b.isActive)
   const activeNav = globalBlocks.find((b) => b.type === 'nav' && b.isActive)
   const globalHeaderNavLayout = activeHeaderNav?.content?.layout === 'inline' ? 'inline' : 'stacked'
+  const globalHeaderNavResponsiveBreakpoint: HeaderNavBreakpoint =
+    activeHeaderNav?.content?.responsiveBreakpoint && ['sm', 'md', 'lg', 'xl'].includes(activeHeaderNav.content.responsiveBreakpoint)
+      ? activeHeaderNav.content.responsiveBreakpoint
+      : 'md'
 
   const handleSave = useCallback(async () => {
     const savePayload = {
@@ -311,15 +316,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
     }
   }
 
-  const handleHeaderNavLayoutChange = (layout: 'stacked' | 'inline') => {
-    if (activeHeaderNav) {
-      updateGlobalBlock(activeHeaderNav.id, {
-        ...activeHeaderNav.content,
-        layout,
-      })
-      return
-    }
-
+  const activateMixedHeaderNav = (overrides: { layout?: 'stacked' | 'inline'; responsiveBreakpoint?: HeaderNavBreakpoint }) => {
     const navItems =
       activeNav?.content?.items ||
       pages.map((page) => ({
@@ -334,7 +331,8 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
       isActive: true,
       content: {
         title: activeHeader?.content?.title || 'Your Site Title',
-        layout,
+        layout: overrides.layout ?? globalHeaderNavLayout,
+        responsiveBreakpoint: overrides.responsiveBreakpoint ?? globalHeaderNavResponsiveBreakpoint,
         autoSync: activeNav?.content?.autoSync ?? true,
         items: navItems,
         styles: {
@@ -367,6 +365,30 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
       ),
       mergedBlock,
     ])
+  }
+
+  const handleHeaderNavLayoutChange = (layout: 'stacked' | 'inline') => {
+    if (activeHeaderNav) {
+      updateGlobalBlock(activeHeaderNav.id, {
+        ...activeHeaderNav.content,
+        layout,
+      })
+      return
+    }
+
+    activateMixedHeaderNav({ layout })
+  }
+
+  const handleHeaderNavResponsiveBreakpointChange = (responsiveBreakpoint: HeaderNavBreakpoint) => {
+    if (activeHeaderNav) {
+      updateGlobalBlock(activeHeaderNav.id, {
+        ...activeHeaderNav.content,
+        responsiveBreakpoint,
+      })
+      return
+    }
+
+    activateMixedHeaderNav({ responsiveBreakpoint })
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -496,6 +518,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
         pages={pages}
         activePageId={activePageId}
         globalHeaderNavLayout={globalHeaderNavLayout}
+        globalHeaderNavResponsiveBreakpoint={globalHeaderNavResponsiveBreakpoint}
         newPageName={newPageName}
         draggedBlockType={draggedBlockType}
         openGlobalEditorId={openGlobalEditorId}
@@ -508,6 +531,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
         onSetNewPageName={setNewPageName}
         onCreateNewPage={createNewPage}
         onHeaderNavLayoutChange={handleHeaderNavLayoutChange}
+        onHeaderNavResponsiveBreakpointChange={handleHeaderNavResponsiveBreakpointChange}
         onSetOpenGlobalEditorId={setOpenGlobalEditorId}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
@@ -534,6 +558,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
         onViewportChange={handleViewportChange}
         onSizeChange={handleSizeChange}
         title={activePage?.name || 'Page Preview'}
+        showToolbarTitle={false}
         titleAddon={
           <Select value={activePageId} onValueChange={setActivePageId}>
             <SelectTrigger className="min-w-[200px] bg-white" aria-label="Select page to build">
@@ -612,6 +637,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ websiteId, websi
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           themeColors={themeColors}
+          previewWidth={customWidth}
         />
       </ViewportSandbox>
     </div>
